@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}
+
+All Chats
+
+{% endblock title%}
+
+{%block body%} 
+
+<div class="list-group">
+  <a href="#" class="list-group-item list-group-item-action active" aria-current="true">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">Alice</h5>
+      
+      <span class="badge text-bg-primary rounded-pill">2</span>
+    </div>
+    <small>Where you at?</small>
+    <small>30 mins ago</small>
+  </a>
+  <a href="#" class="list-group-item list-group-item-action">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">Bob</h5>
+      
+      <span class="badge text-bg-primary rounded-pill">3</span>
+    </div>
+    <small class="text-body-secondary">Yep all good, thanks.</small>
+    <small class="text-body-secondary">1 hour ago</small>
+  </a>
+  <a href="#" class="list-group-item list-group-item-action">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">Charlie</h5>
+      
+    </div>
+    <small class="text-body-secondary">Just do it noooo.</small>
+    <small class="text-body-secondary">1 day ago</small>
+  </a>
+</div>
+
+{%endblock body%}
