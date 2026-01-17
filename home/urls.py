@@ -5,6 +5,7 @@ from home import views
 urlpatterns = [
     path("", views.index, name="home"),
     path("chats", views.index, name="chats"),
-    path("groups", views.groups, name="groups"),
-    path("about", views.about, name="about")
+    path("featured-groups", views.featuredgroups, name="featured-groups"),
+    path("about", views.about, name="about"),
+    path("avatar-selection", views.avatarselection, name="avatar-selection")
 ]

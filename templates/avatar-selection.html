@@ -1,0 +1,109 @@
+{% load static %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="d-flex justify-content-center mt-4">
+
+    <div id="avatarCarousel"
+        class="carousel slide"
+        style="width: 100%; max-width: 400px; min-height: 55vh;"
+>
+
+    <div class="carousel-inner text-center">
+
+      <div class="carousel-item active">
+        <img src="{% static 'avatars/brownbear.png' %}"
+             style="height: 55vh; max-height: 400px; object-fit: contain;"
+             class="mx-auto d-block"
+             alt="Brown Bear">
+        <h5 class="mt-2">Brown Bear</h5>
+        <p>Hush points 1000</p>
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'avatars/cat.png' %}"
+             style="height: 55vh; max-height: 400px; object-fit: contain;"
+             class="mx-auto d-block"
+             alt="Cat">
+        <h5 class="mt-2">Cat</h5>
+        <p>Hush points 1000</p>
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'avatars/cow.png' %}"
+             style="height: 55vh; max-height: 400px; object-fit: contain;"
+             class="mx-auto d-block"
+             alt="Cow">
+        <h5 class="mt-2">Cow</h5>
+        <p>Hush points 1000</p>
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'avatars/gorilla.png' %}"
+             style="height: 55vh; max-height: 400px; object-fit: contain;"
+             class="mx-auto d-block"
+             alt="Gorilla">
+        <h5 class="mt-2">Gorilla</h5>
+        <p>Hush points 1000</p>
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'avatars/lion.png' %}"
+             style="height: 55vh; max-height: 400px; object-fit: contain;"
+             class="mx-auto d-block"
+             alt="Lion">
+        <h5 class="mt-2">Lion</h5>
+        <p>Hush points 1000</p>
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'avatars/panda.png' %}"
+             style="height: 55vh; max-height: 400px; object-fit: contain;"
+             class="mx-auto d-block"
+             alt="Panda">
+        <h5 class="mt-2">Panda</h5>
+        <p>Hush points 1000</p>
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'avatars/panther.png' %}"
+             style="height: 55vh; max-height: 400px; object-fit: contain;"
+             class="mx-auto d-block"
+             alt="Panther">
+        <h5 class="mt-2">Panther</h5>
+        <p>Hush points 1000</p>
+      </div>
+
+      <div class="carousel-item">
+        <img src="{% static 'avatars/smalldog.png' %}"
+             style="height: 55vh; max-height: 400px; object-fit: contain;"
+             class="mx-auto d-block"
+             alt="Small Dog">
+        <h5 class="mt-2">Small Dog</h5>
+        <p>Hush points 1000</p>
+      </div>
+
+    </div>
+
+    <button class="carousel-control-prev"
+            type="button"
+            data-bs-target="#avatarCarousel"
+            data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+
+    <button class="carousel-control-next"
+            type="button"
+            data-bs-target="#avatarCarousel"
+            data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+    </button>
+
+    <div class="d-grid gap-2 col-10 mx-auto">
+        <button class="btn btn-primary btn-lg py-3 fs-4" type="button">Button</button>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>

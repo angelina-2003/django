@@ -8,10 +8,11 @@ def index(request):
 def about(request):
     return HttpResponse("This is about page")
 
-
 def chats(request):
     return HttpResponse("all the chats here")
 
+def featuredgroups(request):
+    return render (request, "featured-groups.html")
 
-def groups(request):
-    return HttpResponse("Featured groups here")
+def avatarselection(request):
+    return render(request, "avatar-selection.html")
