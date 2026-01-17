@@ -7,5 +7,6 @@ urlpatterns = [
     path("chats", views.index, name="chats"),
     path("featured-groups", views.featuredgroups, name="featured-groups"),
     path("about", views.about, name="about"),
-    path("avatar-selection", views.avatarselection, name="avatar-selection")
+    path("avatar-selection", views.avatarselection, name="avatar-selection"),
+    path("edit-profile", views.editprofile, name="edit-profile")
 ]

@@ -16,3 +16,6 @@ def featuredgroups(request):
 
 def avatarselection(request):
     return render(request, "avatar-selection.html")
+
+def editprofile(request):
+    return render(request, "edit-profile.html")

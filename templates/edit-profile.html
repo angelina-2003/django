@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock title %}
+
+{% block body %}
+
+<div class="container my-4">
+
+    <h3 class="mb-4">My Profile</h3>
+
+    <form method="post" class="row g-4">
+        {% csrf_token %}
+
+        <!-- Avatar placeholder -->
+        <div class="col-12">
+            <h5>Avatar</h5>
+            <!-- avatar selector goes here later -->
+        </div>
+
+        <!-- Basic info -->
+        <div class="col-md-6">
+            <label for="name" class="form-label">Name</label>
+            <input
+                type="text"
+                class="form-control"
+                id="name"
+                name="name"
+                placeholder="Enter your name"
+                required
+            >
+        </div>
+
+        <div class="col-md-3">
+            <label for="ageRange" class="form-label">
+                Age: <span id="ageValue">18</span>
+            </label>
+            <input
+                type="range"
+                class="form-range"
+                id="ageRange"
+                name="age"
+                min="18"
+                max="60"
+                value="18"
+                oninput="document.getElementById('ageValue').innerText = this.value == 60 ? '60+' : this.value"
+            >
+        </div>
+
+        <!-- Gender -->
+        <div class="col-12">
+            <label class="form-label d-block">Gender</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="gender" id="genderMale" value="male">
+                <label class="form-check-label" for="genderMale">Male</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="female">
+                <label class="form-check-label" for="genderFemale">Female</label>
+            </div>
+        </div>
+
+        <!-- Interest -->
+        <div class="col-12">
+            <label class="form-label d-block">Interested In</label>
+            <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="interested_in" id="interestMale" value="male">
+                <label class="btn btn-outline-primary" for="interestMale">Male</label>
+
+                <input type="radio" class="btn-check" name="interested_in" id="interestFemale" value="female">
+                <label class="btn btn-outline-primary" for="interestFemale">Female</label>
+
+                <input type="radio" class="btn-check" name="interested_in" id="interestBoth" value="both">
+                <label class="btn btn-outline-primary" for="interestBoth">Both</label>
+            </div>
+        </div>
+
+        <!-- Primary action -->
+        <div class="col-12 d-grid col-md-4 mx-auto mt-3">
+            <button class="btn btn-primary btn-lg" type="submit">
+                Save Profile
+            </button>
+        </div>
+
+    </form>
+
+    <!-- Secondary settings -->
+    <hr class="my-5">
+
+    <h5 class="mb-3">Settings</h5>
+
+    <div class="d-grid gap-2 col-md-4">
+         <button class="btn btn-outline-secondary" type="button">My Super Powers</button>
+        <button class="btn btn-outline-secondary" type="button">Message Colour</button>
+        <button class="btn btn-outline-secondary" type="button">Privacy and Security</button>
+        <button class="btn btn-outline-secondary" type="button">Languages</button>
+        <button class="btn btn-outline-secondary" type="button">Content Settings</button>
+    </div>
+
+</div>
+
+{% endblock body %}
