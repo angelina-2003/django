@@ -3,8 +3,10 @@ from django.urls import path
 from home import views 
 
 urlpatterns = [
-    path("", views.index, name="home"),
-    path("chats", views.index, name="chats"),
+    path("", views.allchats, name="all-chats"),
+    path("login", views.loginUser, name="login"),
+    path("logout", views.logoutUser, name="logout"),
+    path("all-chats", views.allchats, name="all-chats"),
     path("featured-groups", views.featuredgroups, name="featured-groups"),
     path("about", views.about, name="about"),
     path("avatar-selection", views.avatarselection, name="avatar-selection"),
