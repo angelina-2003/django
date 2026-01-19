@@ -1,14 +1,40 @@
 from django.db import models
+from django.contrib.auth.models import User
 
-# Create your models here.
 
 class Profile(models.Model):
-    username = models.CharField(max_length=122)
-    display_name = models.CharField(max_length=122)
-    avatar = models.CharField(max_length=122)
-    age = models.CharField(max_length=122)
-    gender = models.CharField(max_length=122)
-    preference = models.CharField(max_length=122)
-    email = models.CharField(max_length=122)
-    phone = models.CharField(max_length=12)
-    hush_points = models.CharField(max_length=12)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+
+    display_name = models.CharField(max_length=122, blank=True)
+    avatar = models.CharField(max_length=122, default="default")
+
+    age = models.PositiveIntegerField(null=True, blank=True)
+
+    GENDER_CHOICES = [
+        ("male", "Male"),
+        ("female", "Female"),
+    ]
+    gender = models.CharField(
+        max_length=20,
+        choices=GENDER_CHOICES,
+        null=True,
+        blank=True
+    )
+
+    PREFERENCE_CHOICES = [
+        ("male", "Male"),
+        ("female", "Female"),
+        ("both", "Both"),
+    ]
+    preference = models.CharField(
+        max_length=20,
+        choices=PREFERENCE_CHOICES,
+        null=True,
+        blank=True
+    )
+
+    hush_points = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.user.username} Profile"
+
