@@ -17,11 +17,11 @@
             <span class="brand-icon">🌙</span>
             <span class="brand-text">Hush Hours</span>
           </a>
-          <div class="nav-item dropdown add-dropdown">
-            <button class="btn add-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="addButton">
+          <div class="dropdown add-dropdown">
+            <button class="btn add-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="addButton" aria-haspopup="true" aria-label="Add menu">
               <span class="add-icon">+</span>
             </button>
-            <ul class="dropdown-menu custom-dropdown add-menu" id="addDropdown">
+            <ul class="dropdown-menu custom-dropdown add-menu" id="addDropdown" aria-labelledby="addButton">
               <li>
                 <a class="dropdown-item" href="/featured-groups">
                   <span class="dropdown-icon">⭐</span>
@@ -58,11 +58,11 @@
               </a>
             </li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle settings-dropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="settings-link">
+              <a class="nav-link dropdown-toggle settings-dropdown" href="javascript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="settings-link" aria-haspopup="true">
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-text">Settings</span>
               </a>
-              <ul class="dropdown-menu dropdown-menu-end custom-dropdown" id="settingsDropdown">
+              <ul class="dropdown-menu dropdown-menu-end custom-dropdown" id="settingsDropdown" aria-labelledby="settings-link">
                 <li>
                   <a class="dropdown-item" href="/buyartifacts">
                     <span class="dropdown-icon">💎</span>
@@ -140,15 +140,117 @@
     {% block body %}{% endblock body %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxMzeD2scQbITxI" crossorigin="anonymous"></script>
-    <!-- Minimal script to initialize Bootstrap dropdowns - required for dropdowns to work -->
     <script>
-      // Bootstrap 5 requires this minimal initialization for dropdowns
-      document.addEventListener('DOMContentLoaded', function() {
-        var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
-        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-          return new bootstrap.Dropdown(dropdownToggleEl);
-        });
-      });
+      (function() {
+        'use strict';
+        
+        function toggleDropdown(button, menu) {
+          var isShown = menu.classList.contains('show');
+          
+          // Close all other dropdowns
+          document.querySelectorAll('.dropdown-menu.show').forEach(function(otherMenu) {
+            if (otherMenu !== menu) {
+              otherMenu.classList.remove('show');
+              var otherBtn = document.querySelector('[data-bs-toggle="dropdown"][aria-expanded="true"]');
+              if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
+            }
+          });
+          
+          // Toggle this dropdown
+          if (isShown) {
+            menu.classList.remove('show');
+            button.setAttribute('aria-expanded', 'false');
+            console.log('Dropdown closed');
+          } else {
+            menu.classList.add('show');
+            button.setAttribute('aria-expanded', 'true');
+            console.log('Dropdown opened');
+          }
+        }
+        
+        function closeAllDropdowns() {
+          document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+            menu.classList.remove('show');
+          });
+          document.querySelectorAll('[data-bs-toggle="dropdown"][aria-expanded="true"]').forEach(function(btn) {
+            btn.setAttribute('aria-expanded', 'false');
+          });
+        }
+        
+        // Initialize when DOM is ready
+        function init() {
+          console.log('Initializing dropdowns...');
+          
+          // Handle Add Button
+          var addButton = document.getElementById('addButton');
+          var addDropdown = document.getElementById('addDropdown');
+          
+          if (!addButton || !addDropdown) {
+            console.error('Add button or dropdown not found!', { addButton: !!addButton, addDropdown: !!addDropdown });
+            return;
+          }
+          
+          console.log('Found add button and dropdown');
+          addButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Add button clicked');
+            toggleDropdown(addButton, addDropdown);
+          });
+          
+          // Handle Settings Link
+          var settingsLink = document.getElementById('settings-link');
+          var settingsDropdown = document.getElementById('settingsDropdown');
+          
+          if (!settingsLink || !settingsDropdown) {
+            console.error('Settings link or dropdown not found!', { settingsLink: !!settingsLink, settingsDropdown: !!settingsDropdown });
+            return;
+          }
+          
+          console.log('Found settings link and dropdown');
+          settingsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Settings link clicked');
+            toggleDropdown(settingsLink, settingsDropdown);
+          });
+          
+          // Close dropdowns when clicking outside
+          document.addEventListener('click', function(e) {
+            var clickedInside = false;
+            
+            if (addButton && (addButton.contains(e.target) || addDropdown.contains(e.target))) {
+              clickedInside = true;
+            }
+            if (settingsLink && (settingsLink.contains(e.target) || settingsDropdown.contains(e.target))) {
+              clickedInside = true;
+            }
+            
+            if (!clickedInside) {
+              closeAllDropdowns();
+            }
+          });
+          
+          // Close when clicking dropdown items
+          [addDropdown, settingsDropdown].forEach(function(menu) {
+            if (menu) {
+              menu.querySelectorAll('.dropdown-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                  closeAllDropdowns();
+                });
+              });
+            }
+          });
+          
+          console.log('Dropdowns initialized successfully');
+        }
+        
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
     </script>
   </body>
 </html>

@@ -77,6 +77,7 @@ html {
 /* Add Button Dropdown */
 .add-dropdown {
   margin-left: 12px;
+  position: relative;
 }
 
 .add-btn {
@@ -202,6 +203,22 @@ html {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
   min-width: 260px;
   max-width: 300px;
+  z-index: 1050 !important;
+}
+
+/* Ensure dropdown menus are hidden by default */
+.dropdown-menu:not(.show) {
+  display: none !important;
+}
+
+/* Show dropdown when it has the show class */
+.dropdown-menu.show,
+.custom-dropdown.show,
+.dropdown.show > .dropdown-menu,
+.dropdown.show .dropdown-menu {
+  display: block !important;
+  z-index: 1050 !important;
+  position: absolute !important;
 }
 
 .dropdown-item {
@@ -329,6 +346,8 @@ html {
 
 .dropdown-menu.show {
   animation: slideIn 0.2s ease;
+  display: block !important;
+  z-index: 1050 !important;
 }
 
 /* Focus states for accessibility */
