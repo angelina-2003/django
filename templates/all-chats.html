@@ -1,44 +1,228 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
-
 All Chats
+{% endblock title %}
 
-{% endblock title%}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/all-chats.css' %}">
+{% endblock extra_css %}
 
-{%block body%} 
-
-Welcome {{ request.user }}
-
-<a href="/logout">Logout</a>
-
-<div class="list-group">
-  <a href="#" class="list-group-item list-group-item-action active" aria-current="true">
-    <div class="d-flex w-100 justify-content-between">
-      <h5 class="mb-1">Alice</h5>
-      
-      <span class="badge text-bg-primary rounded-pill">2</span>
+{% block body %}
+<div class="chat-container">
+  <!-- Left Sidebar - Chat List -->
+  <div class="chat-sidebar">
+    <!-- Navigation Bar -->
+    <div class="chat-nav">
+      <a href="?filter=all" class="nav-btn {% if request.GET.filter == 'all' or not request.GET.filter %}active{% endif %}">All Chats</a>
+      <a href="?filter=group" class="nav-btn {% if request.GET.filter == 'group' %}active{% endif %}">Group Chats</a>
+      <a href="?filter=private" class="nav-btn {% if request.GET.filter == 'private' %}active{% endif %}">Private Chats</a>
+      <a href="?filter=heart" class="nav-btn {% if request.GET.filter == 'heart' %}active{% endif %}">❤️ Heart Chats</a>
     </div>
-    <small>Where you at?</small>
-    <small>30 mins ago</small>
-  </a>
-  <a href="#" class="list-group-item list-group-item-action">
-    <div class="d-flex w-100 justify-content-between">
-      <h5 class="mb-1">Bob</h5>
-      
-      <span class="badge text-bg-primary rounded-pill">3</span>
+
+    <!-- Search Bar Section -->
+    <div class="user-info">
+      <div class="search-container">
+        <form method="get" action="" class="search-form">
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" name="search" class="chat-search-input" value="{{ request.GET.search }}" placeholder="Search chats or users...">
+            {% if request.GET.search %}
+            <a href="?" class="search-clear-btn" title="Clear search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </a>
+            {% endif %}
+            {% if request.GET.filter %}
+            <input type="hidden" name="filter" value="{{ request.GET.filter }}">
+            {% endif %}
+          </div>
+        </form>
+      </div>
     </div>
-    <small class="text-body-secondary">Yep all good, thanks.</small>
-    <small class="text-body-secondary">1 hour ago</small>
-  </a>
-  <a href="#" class="list-group-item list-group-item-action">
-    <div class="d-flex w-100 justify-content-between">
-      <h5 class="mb-1">Charlie</h5>
-      
+
+    <!-- Chat List -->
+    <div class="chat-list-container">
+      <div class="chat-list" id="chatList">
+        <!-- All Chats -->
+        <div class="chat-item active" data-chat-type="all">
+          <div class="chat-avatar">
+            <div class="avatar-circle">A</div>
+            <span class="online-indicator"></span>
+          </div>
+          <div class="chat-content">
+            <div class="chat-header">
+              <h5 class="chat-name">Alice</h5>
+              <span class="chat-time">30 mins ago</span>
+            </div>
+            <div class="chat-preview">
+              <p class="chat-message">Where you at?</p>
+              <span class="badge badge-primary">2</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-item" data-chat-type="all private">
+          <div class="chat-avatar">
+            <div class="avatar-circle">B</div>
+            <span class="online-indicator"></span>
+          </div>
+          <div class="chat-content">
+            <div class="chat-header">
+              <h5 class="chat-name">Bob</h5>
+              <span class="chat-time">1 hour ago</span>
+            </div>
+            <div class="chat-preview">
+              <p class="chat-message">Yep all good, thanks.</p>
+              <span class="badge badge-primary">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-item" data-chat-type="all private">
+          <div class="chat-avatar">
+            <div class="avatar-circle">C</div>
+          </div>
+          <div class="chat-content">
+            <div class="chat-header">
+              <h5 class="chat-name">Charlie</h5>
+              <span class="chat-time">1 day ago</span>
+            </div>
+            <div class="chat-preview">
+              <p class="chat-message">Just do it noooo.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group Chat Example -->
+        <div class="chat-item" data-chat-type="all group">
+          <div class="chat-avatar">
+            <div class="avatar-circle group-avatar">👥</div>
+            <span class="online-indicator"></span>
+          </div>
+          <div class="chat-content">
+            <div class="chat-header">
+              <h5 class="chat-name">Project Team</h5>
+              <span class="chat-time">2 hours ago</span>
+            </div>
+            <div class="chat-preview">
+              <p class="chat-message">Meeting at 3pm today</p>
+              <span class="badge badge-primary">5</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <small class="text-body-secondary">Just do it noooo.</small>
-    <small class="text-body-secondary">1 day ago</small>
-  </a>
+  </div>
+
+  <!-- Right Side - Chat Window -->
+  <div class="chat-window">
+    <div class="chat-window-placeholder">
+      <div class="placeholder-content">
+        <div class="placeholder-icon">💬</div>
+        <h3>Select a chat to start messaging</h3>
+        <p>Choose a conversation from the left sidebar to begin</p>
+      </div>
+    </div>
+
+    <!-- Active Chat (hidden by default, will be shown when chat is selected) -->
+    <div class="chat-active" style="display: none;">
+      <!-- Chat Header -->
+      <div class="chat-window-header">
+        <div class="chat-window-user">
+          <div class="chat-window-avatar">
+            <div class="avatar-circle">A</div>
+            <span class="online-indicator"></span>
+          </div>
+          <div class="chat-window-info">
+            <h5 class="chat-window-name">Alice</h5>
+            <span class="chat-status">Online</span>
+          </div>
+        </div>
+        <div class="chat-actions">
+          <button class="action-btn" title="Search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </button>
+          <button class="action-btn" title="More options">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="messages-container">
+        <div class="message received">
+          <div class="message-avatar">
+            <div class="avatar-circle small">A</div>
+          </div>
+          <div class="message-content">
+            <div class="message-header">
+              <span class="message-sender">Alice</span>
+              <span class="message-time">10:30 AM</span>
+            </div>
+            <div class="message-bubble">
+              <p>Hey! How are you doing?</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="message sent">
+          <div class="message-content">
+            <div class="message-header">
+              <span class="message-sender">You</span>
+              <span class="message-time">10:32 AM</span>
+            </div>
+            <div class="message-bubble">
+              <p>I'm doing great, thanks for asking!</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="message received">
+          <div class="message-avatar">
+            <div class="avatar-circle small">A</div>
+          </div>
+          <div class="message-content">
+            <div class="message-header">
+              <span class="message-sender">Alice</span>
+              <span class="message-time">10:33 AM</span>
+            </div>
+            <div class="message-bubble">
+              <p>Where you at?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Input -->
+      <div class="message-input-container">
+        <div class="message-input-wrapper">
+          <button class="input-action-btn" title="Attach file">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+          </button>
+          <input type="text" class="message-input" placeholder="Type a message...">
+          <button class="input-action-btn" title="Send">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-{%endblock body%}
+{% endblock body %}

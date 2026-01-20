@@ -1,55 +1,144 @@
-
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title> {% block title %} {% endblock title %} </title>
+    <title>{% block title %}{% endblock title %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock extra_css %}
   </head>
   <body>
-
-    <nav class="navbar  bg-body-tertiary" data-bs-theme="dark">
-    <div class="container-fluid d-flex align-items-center" >
-        <a class="navbar-brand" href="#">Hush Hours</a>
+    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <a class="navbar-brand brand-logo" href="/">
+            <span class="brand-icon">🌙</span>
+            <span class="brand-text">Hush Hours</span>
+          </a>
+          <div class="nav-item dropdown add-dropdown">
+            <button class="btn add-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="addButton">
+              <span class="add-icon">+</span>
+            </button>
+            <ul class="dropdown-menu custom-dropdown add-menu" id="addDropdown">
+              <li>
+                <a class="dropdown-item" href="/featured-groups">
+                  <span class="dropdown-icon">⭐</span>
+                  <span>Featured</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/search-user">
+                  <span class="dropdown-icon">🔍</span>
+                  <span>Search user</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/create-group">
+                  <span class="dropdown-icon">➕</span>
+                  <span>Create group</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
         
-        <div class=" navbar-collapse">
-        <ul class="navbar-nav me-auto d-flex flex-row gap-3">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+          
+          <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/all-chats">Chats</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="/featured-groups">Featured Groups</a>
+              <a class="nav-link profile-link" href="/profile" id="profile-link">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">Profile</span>
+              </a>
             </li>
             <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Settings
-            </a>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/profile">Edit my profile</a></li>
-                <li><a class="dropdown-item" href="/buyartifacts">Buy Artifacts</a></li>
+              <a class="nav-link dropdown-toggle settings-dropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="settings-link">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Settings</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end custom-dropdown" id="settingsDropdown">
+                <li>
+                  <a class="dropdown-item" href="/buyartifacts">
+                    <span class="dropdown-icon">💎</span>
+                    <span>Buy Artifacts</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/contacts">
+                    <span class="dropdown-icon">📇</span>
+                    <span>Contacts</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/clear-cache" id="clear-cache-link">
+                    <span class="dropdown-icon">🗑️</span>
+                    <span>Clear cache</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/logout">
+                    <span class="dropdown-icon">🚪</span>
+                    <span>Log Out</span>
+                  </a>
+                </li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#">How does it work?</a></li>
-                <li><a class="dropdown-item" href="#">Privacy Policy</a></li>
-                <li><a class="dropdown-item" href="#">User agreement</a></li>
-            </ul>
+                <li>
+                  <a class="dropdown-item" href="/how-it-works">
+                    <span class="dropdown-icon">❓</span>
+                    <span>How does it work?</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/what-is-karma">
+                    <span class="dropdown-icon">✨</span>
+                    <span>What is karma?</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/rules-for-founders">
+                    <span class="dropdown-icon">📋</span>
+                    <span>Rules for Chat room founders</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/user-agreement">
+                    <span class="dropdown-icon">📄</span>
+                    <span>User Agreement</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/premium-user-agreement">
+                    <span class="dropdown-icon">⭐</span>
+                    <span>Premium User Agreement</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/privacy-policy">
+                    <span class="dropdown-icon">🔒</span>
+                    <span>Privacy Policy</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/safety-panel">
+                    <span class="dropdown-icon">🛡️</span>
+                    <span>Safety Panel</span>
+                  </a>
+                </li>
+              </ul>
             </li>
-            <li class="nav-item">
-            {% comment %} <a class="nav-link disabled" aria-disabled="true">Disabled</a> {% endcomment %}
-            </li>
-        </ul>
-        {% comment %} <form class="d-flex" role="search">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
-            <button class="btn btn-outline-success" type="submit">Search</button>
-        </form> {% endcomment %}
+          </ul>
         </div>
-    </div>
+      </div>
     </nav>
 
-    {% block body %} {% endblock body %}
+    {% block body %}{% endblock body %}
 
-
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxMzeD2scQbITxI" crossorigin="anonymous"></script>
   </body>
 </html>
