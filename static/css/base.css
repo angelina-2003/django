@@ -206,19 +206,18 @@ html {
   z-index: 1050 !important;
 }
 
-/* Ensure dropdown menus are hidden by default */
-.dropdown-menu:not(.show) {
-  display: none !important;
+/* Bootstrap handles display - we only ensure visibility when shown */
+.dropdown-menu.show {
+  display: block !important;
 }
 
-/* Show dropdown when it has the show class */
-.dropdown-menu.show,
-.custom-dropdown.show,
-.dropdown.show > .dropdown-menu,
-.dropdown.show .dropdown-menu {
+.custom-dropdown.show {
   display: block !important;
-  z-index: 1050 !important;
-  position: absolute !important;
+}
+
+/* Make sure dropdown parent has relative positioning for Bootstrap's Popper.js */
+.dropdown {
+  position: relative;
 }
 
 .dropdown-item {
@@ -344,10 +343,9 @@ html {
   }
 }
 
+/* Animation for dropdown when shown - merged with main show rule */
 .dropdown-menu.show {
   animation: slideIn 0.2s ease;
-  display: block !important;
-  z-index: 1050 !important;
 }
 
 /* Focus states for accessibility */
@@ -362,4 +360,429 @@ html {
 .nav-link.loading {
   opacity: 0.6;
   pointer-events: none;
+}
+
+
+.add-btn::after {
+  display: none !important;
+}
+
+/* Search User Modal Styles */
+.search-user-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+
+.search-user-input-wrapper:focus-within {
+  border-color: var(--navbar-active);
+  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
+}
+
+.search-user-icon {
+  font-size: 1.1rem;
+  color: var(--navbar-text-secondary);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.search-user-input {
+  background: transparent !important;
+  border: none !important;
+  color: var(--navbar-text) !important;
+  padding: 0 !important;
+  font-size: 0.95rem;
+}
+
+.search-user-input::placeholder {
+  color: var(--navbar-text-secondary) !important;
+}
+
+.search-user-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.search-results-container {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 16px;
+}
+
+.search-results-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-results-container::-webkit-scrollbar-track {
+  background: var(--dropdown-bg);
+  border-radius: 3px;
+}
+
+.search-results-container::-webkit-scrollbar-thumb {
+  background: var(--dropdown-border);
+  border-radius: 3px;
+}
+
+.search-results-container::-webkit-scrollbar-thumb:hover {
+  background: var(--navbar-text-secondary);
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.search-result-item:hover {
+  background: var(--dropdown-hover);
+  border-color: var(--navbar-active);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.search-result-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.search-result-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--navbar-active) 0%, #81d4fa 100%);
+  color: var(--navbar-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(79, 195, 247, 0.3);
+}
+
+.search-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.search-result-username {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navbar-text);
+}
+
+.search-result-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--navbar-active);
+  color: var(--navbar-bg);
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-result-chat-btn:hover {
+  background: #81d4fa;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
+  color: var(--navbar-bg);
+  text-decoration: none;
+}
+
+.search-result-chat-btn:active {
+  transform: scale(0.98);
+}
+
+.chat-btn-icon {
+  font-size: 1rem;
+}
+
+.chat-btn-text {
+  font-size: 0.9rem;
+}
+
+.search-no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--navbar-text-secondary);
+  font-size: 0.95rem;
+}
+
+/* Modal customization for search user */
+#searchUserModal .modal-content {
+  background: var(--body-bg) !important;
+  border: 1px solid var(--dropdown-border);
+  border-radius: 16px;
+}
+
+#searchUserModal .modal-header {
+  border-bottom: 1px solid var(--dropdown-border);
+  padding: 20px 24px;
+}
+
+#searchUserModal .modal-title {
+  color: var(--navbar-text);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+#searchUserModal .btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+#searchUserModal .modal-body {
+  padding: 24px;
+}
+
+#searchUserModal .modal-footer {
+  border-top: 1px solid var(--dropdown-border);
+  padding: 16px 24px;
+}
+
+#searchUserModal .btn-secondary {
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  color: var(--navbar-text);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+#searchUserModal .btn-secondary:hover {
+  background: var(--dropdown-hover);
+  border-color: var(--navbar-active);
+  color: var(--navbar-active);
+}
+
+/* Search User Modal Styles */
+.search-user-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+
+.search-user-input-wrapper:focus-within {
+  border-color: var(--navbar-active);
+  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
+}
+
+.search-user-icon {
+  font-size: 1.1rem;
+  color: var(--navbar-text-secondary);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.search-user-input {
+  background: transparent !important;
+  border: none !important;
+  color: var(--navbar-text) !important;
+  padding: 0 !important;
+  font-size: 0.95rem;
+}
+
+.search-user-input::placeholder {
+  color: var(--navbar-text-secondary) !important;
+}
+
+.search-user-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.search-results-container {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 16px;
+}
+
+.search-results-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-results-container::-webkit-scrollbar-track {
+  background: var(--dropdown-bg);
+  border-radius: 3px;
+}
+
+.search-results-container::-webkit-scrollbar-thumb {
+  background: var(--dropdown-border);
+  border-radius: 3px;
+}
+
+.search-results-container::-webkit-scrollbar-thumb:hover {
+  background: var(--navbar-text-secondary);
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.search-result-item:hover {
+  background: var(--dropdown-hover);
+  border-color: var(--navbar-active);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.search-result-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.search-result-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--navbar-active) 0%, #81d4fa 100%);
+  color: var(--navbar-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(79, 195, 247, 0.3);
+}
+
+.search-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.search-result-username {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navbar-text);
+}
+
+.search-result-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--navbar-active);
+  color: var(--navbar-bg);
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-result-chat-btn:hover {
+  background: #81d4fa;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
+  color: var(--navbar-bg);
+  text-decoration: none;
+}
+
+.search-result-chat-btn:active {
+  transform: scale(0.98);
+}
+
+.chat-btn-icon {
+  font-size: 1rem;
+}
+
+.chat-btn-text {
+  font-size: 0.9rem;
+}
+
+.search-no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--navbar-text-secondary);
+  font-size: 0.95rem;
+}
+
+/* Modal customization for search user */
+#searchUserModal .modal-content {
+  background: var(--body-bg) !important;
+  border: 1px solid var(--dropdown-border);
+  border-radius: 16px;
+}
+
+#searchUserModal .modal-header {
+  border-bottom: 1px solid var(--dropdown-border);
+  padding: 20px 24px;
+}
+
+#searchUserModal .modal-title {
+  color: var(--navbar-text);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+#searchUserModal .btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+#searchUserModal .modal-body {
+  padding: 24px;
+}
+
+#searchUserModal .modal-footer {
+  border-top: 1px solid var(--dropdown-border);
+  padding: 16px 24px;
+}
+
+#searchUserModal .btn-secondary {
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  color: var(--navbar-text);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+#searchUserModal .btn-secondary:hover {
+  background: var(--dropdown-hover);
+  border-color: var(--navbar-active);
+  color: var(--navbar-active);
 }

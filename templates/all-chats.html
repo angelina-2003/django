@@ -7,6 +7,7 @@ All Chats
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/all-chats.css' %}">
+<link rel="stylesheet" href="{% static 'css/chat-room.css' %}">
 {% endblock extra_css %}
 
 {% block body %}
@@ -15,10 +16,10 @@ All Chats
   <div class="chat-sidebar">
     <!-- Navigation Bar -->
     <div class="chat-nav">
-      <a href="?filter=all" class="nav-btn {% if request.GET.filter == 'all' or not request.GET.filter %}active{% endif %}">All Chats</a>
-      <a href="?filter=group" class="nav-btn {% if request.GET.filter == 'group' %}active{% endif %}">Group Chats</a>
-      <a href="?filter=private" class="nav-btn {% if request.GET.filter == 'private' %}active{% endif %}">Private Chats</a>
-      <a href="?filter=heart" class="nav-btn {% if request.GET.filter == 'heart' %}active{% endif %}">❤️ Heart Chats</a>
+      <a href="?filter=all" class="nav-btn {% if request.GET.filter == 'all' or not request.GET.filter %}active{% endif %}">All</a>
+      <a href="?filter=group" class="nav-btn {% if request.GET.filter == 'group' %}active{% endif %}">👥</a>
+      <a href="?filter=private" class="nav-btn {% if request.GET.filter == 'private' %}active{% endif %}">👤</a>
+      <a href="?filter=heart" class="nav-btn {% if request.GET.filter == 'heart' %}active{% endif %}">♥️</a>
     </div>
 
     <!-- Search Bar Section -->
@@ -47,182 +48,283 @@ All Chats
     <!-- Chat List -->
     <div class="chat-list-container">
       <div class="chat-list" id="chatList">
-        <!-- All Chats -->
-        <div class="chat-item active" data-chat-type="all">
+        {% for chat in chats %}
+        <a href="?chat_id={{ chat.id }}" class="chat-item {% if selected_chat and selected_chat.id == chat.id %}active{% endif %}">
           <div class="chat-avatar">
-            <div class="avatar-circle">A</div>
-            <span class="online-indicator"></span>
-          </div>
-          <div class="chat-content">
-            <div class="chat-header">
-              <h5 class="chat-name">Alice</h5>
-              <span class="chat-time">30 mins ago</span>
-            </div>
-            <div class="chat-preview">
-              <p class="chat-message">Where you at?</p>
-              <span class="badge badge-primary">2</span>
+            <div class="avatar-circle">
+              {% if chat.user1 == request.user %}
+                {{ chat.user2.username|first|upper }}
+              {% else %}
+                {{ chat.user1.username|first|upper }}
+              {% endif %}
             </div>
           </div>
-        </div>
 
-        <div class="chat-item" data-chat-type="all private">
-          <div class="chat-avatar">
-            <div class="avatar-circle">B</div>
-            <span class="online-indicator"></span>
-          </div>
           <div class="chat-content">
             <div class="chat-header">
-              <h5 class="chat-name">Bob</h5>
-              <span class="chat-time">1 hour ago</span>
+              <h5 class="chat-name">
+                {% if chat.user1 == request.user %}
+                  {{ chat.user2.username }}
+                {% else %}
+                  {{ chat.user1.username }}
+                {% endif %}
+              </h5>
             </div>
-            <div class="chat-preview">
-              <p class="chat-message">Yep all good, thanks.</p>
-              <span class="badge badge-primary">3</span>
-            </div>
-          </div>
-        </div>
 
-        <div class="chat-item" data-chat-type="all private">
-          <div class="chat-avatar">
-            <div class="avatar-circle">C</div>
-          </div>
-          <div class="chat-content">
-            <div class="chat-header">
-              <h5 class="chat-name">Charlie</h5>
-              <span class="chat-time">1 day ago</span>
-            </div>
             <div class="chat-preview">
-              <p class="chat-message">Just do it noooo.</p>
+              {% with chat.messages.last as last_msg %}
+                {% if last_msg %}
+                  <p class="chat-message">{{ last_msg.text|truncatewords:10 }}</p>
+                {% else %}
+                  <p class="chat-message text-muted">No messages yet</p>
+                {% endif %}
+              {% endwith %}
             </div>
           </div>
-        </div>
+        </a>
+      {% empty %}
+        <p class="text-muted p-3">No chats yet</p>
+      {% endfor %}
 
-        <!-- Group Chat Example -->
-        <div class="chat-item" data-chat-type="all group">
-          <div class="chat-avatar">
-            <div class="avatar-circle group-avatar">👥</div>
-            <span class="online-indicator"></span>
-          </div>
-          <div class="chat-content">
-            <div class="chat-header">
-              <h5 class="chat-name">Project Team</h5>
-              <span class="chat-time">2 hours ago</span>
-            </div>
-            <div class="chat-preview">
-              <p class="chat-message">Meeting at 3pm today</p>
-              <span class="badge badge-primary">5</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
+
+
   </div>
 
   <!-- Right Side - Chat Window -->
   <div class="chat-window">
-    <div class="chat-window-placeholder">
-      <div class="placeholder-content">
-        <div class="placeholder-icon">💬</div>
-        <h3>Select a chat to start messaging</h3>
-        <p>Choose a conversation from the left sidebar to begin</p>
-      </div>
-    </div>
-
-    <!-- Active Chat (hidden by default, will be shown when chat is selected) -->
-    <div class="chat-active" style="display: none;">
+    {% if selected_chat %}
       <!-- Chat Header -->
-      <div class="chat-window-header">
-        <div class="chat-window-user">
-          <div class="chat-window-avatar">
-            <div class="avatar-circle">A</div>
-            <span class="online-indicator"></span>
+      <div class="chat-header">
+        <div class="chat-user-info">
+          <div class="chat-avatar">
+            {{ other_user.username|first|upper }}
           </div>
-          <div class="chat-window-info">
-            <h5 class="chat-window-name">Alice</h5>
+          <div class="chat-user-details">
+            <h3 class="chat-username">{{ other_user.username }}</h3>
             <span class="chat-status">Online</span>
           </div>
         </div>
-        <div class="chat-actions">
-          <button class="action-btn" title="Search">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
-          <button class="action-btn" title="More options">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="1"></circle>
-              <circle cx="12" cy="5" r="1"></circle>
-              <circle cx="12" cy="19" r="1"></circle>
-            </svg>
+        <div class="chat-header-actions">
+          <button class="header-action-btn" title="More options">
+            <span>⋯</span>
           </button>
         </div>
       </div>
 
       <!-- Messages Area -->
-      <div class="messages-container">
-        <div class="message received">
-          <div class="message-avatar">
-            <div class="avatar-circle small">A</div>
-          </div>
-          <div class="message-content">
-            <div class="message-header">
-              <span class="message-sender">Alice</span>
-              <span class="message-time">10:30 AM</span>
-            </div>
+      <div class="messages-container" id="messagesContainer">
+        {% for message in selected_chat.messages.all %}
+          <div class="message-wrapper {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
             <div class="message-bubble">
-              <p>Hey! How are you doing?</p>
+              <p class="message-text">{{ message.text }}</p>
+              <span class="message-time">{{ message.created_at|date:"H:i" }}</span>
             </div>
           </div>
-        </div>
-
-        <div class="message sent">
-          <div class="message-content">
-            <div class="message-header">
-              <span class="message-sender">You</span>
-              <span class="message-time">10:32 AM</span>
-            </div>
-            <div class="message-bubble">
-              <p>I'm doing great, thanks for asking!</p>
-            </div>
+        {% empty %}
+          <div class="no-messages">
+            <div class="no-messages-icon">💬</div>
+            <p class="no-messages-text">No messages yet. Start the conversation!</p>
           </div>
-        </div>
-
-        <div class="message received">
-          <div class="message-avatar">
-            <div class="avatar-circle small">A</div>
-          </div>
-          <div class="message-content">
-            <div class="message-header">
-              <span class="message-sender">Alice</span>
-              <span class="message-time">10:33 AM</span>
-            </div>
-            <div class="message-bubble">
-              <p>Where you at?</p>
-            </div>
-          </div>
-        </div>
+        {% endfor %}
       </div>
 
-      <!-- Message Input -->
+      <!-- Message Input Area -->
       <div class="message-input-container">
-        <div class="message-input-wrapper">
-          <button class="input-action-btn" title="Attach file">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-            </svg>
-          </button>
-          <input type="text" class="message-input" placeholder="Type a message...">
-          <button class="input-action-btn" title="Send">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          </button>
+        <form method="POST" action="?chat_id={{ selected_chat.id }}" class="message-form" id="messageForm">
+          {% csrf_token %}
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              name="message" 
+              class="message-input" 
+              placeholder="Type a message..." 
+              autocomplete="off"
+              required
+              id="messageInput"
+            >
+            <button type="submit" class="send-button" id="sendButton">
+              <span class="send-icon">➤</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    {% else %}
+      <!-- Placeholder when no chat is selected -->
+      <div class="chat-window-placeholder">
+        <div class="placeholder-content">
+          <div class="placeholder-icon">💬</div>
+          <h3>Select a chat to start messaging</h3>
+          <p>Choose a conversation from the left sidebar to begin</p>
         </div>
       </div>
-    </div>
+    {% endif %}
   </div>
 </div>
 
+<script>
+  let lastMessageId = 0;
+  let pollingInterval = null;
+  let currentChatId = null;
+
+  // Auto-scroll to bottom when page loads or chat changes
+  function scrollToBottom() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (messagesContainer) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }
+
+  // Initialize lastMessageId from existing messages
+  function initializeLastMessageId() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (!messagesContainer) return;
+
+    const messageWrappers = messagesContainer.querySelectorAll('.message-wrapper');
+    if (messageWrappers.length > 0) {
+      // Get the last message's ID from data attribute
+      const lastWrapper = messageWrappers[messageWrappers.length - 1];
+      const messageId = lastWrapper.getAttribute('data-message-id');
+      if (messageId) {
+        lastMessageId = parseInt(messageId, 10);
+      }
+    } else {
+      lastMessageId = 0;
+    }
+  }
+
+  // Function to append new message to the chat
+  function appendMessage(msg) {
+    const container = document.getElementById('messagesContainer');
+    if (!container) return;
+
+    // Remove "no messages" placeholder if it exists
+    const noMessages = container.querySelector('.no-messages');
+    if (noMessages) {
+      noMessages.remove();
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = msg.is_me
+      ? 'message-wrapper message-sent'
+      : 'message-wrapper message-received';
+    wrapper.setAttribute('data-message-id', msg.id);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+
+    const text = document.createElement('p');
+    text.className = 'message-text';
+    text.textContent = msg.text;
+
+    const time = document.createElement('span');
+    time.className = 'message-time';
+    time.textContent = msg.created_at;
+
+    bubble.appendChild(text);
+    bubble.appendChild(time);
+    wrapper.appendChild(bubble);
+    container.appendChild(wrapper);
+
+    scrollToBottom();
+    lastMessageId = msg.id;
+  }
+
+  // Poll for new messages
+  function startPolling(chatId) {
+    // Stop any existing polling
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
+
+    // Don't poll if no chat is selected
+    if (!chatId) {
+      return;
+    }
+
+    currentChatId = chatId;
+    
+    pollingInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/poll-messages/${chatId}/?last_id=${lastMessageId}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Check if we got new messages
+        if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          data.messages.forEach(msg => {
+            appendMessage(msg);
+          });
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+        // Don't spam errors, just log them
+      }
+    }, 2000); // Poll every 2 seconds
+  }
+
+  // Stop polling
+  function stopPolling() {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
+    currentChatId = null;
+    lastMessageId = 0;
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    scrollToBottom();
+    
+    // Check if we have a selected chat
+    {% if selected_chat %}
+      initializeLastMessageId();
+      startPolling({{ selected_chat.id }});
+    {% endif %}
+  });
+
+  // Handle form submission
+  const messageForm = document.getElementById('messageForm');
+  if (messageForm) {
+    messageForm.addEventListener('submit', function() {
+      // Reset lastMessageId so we don't miss the message we just sent
+      setTimeout(function() {
+        scrollToBottom();
+        // Re-initialize lastMessageId after page reloads
+        {% if selected_chat %}
+          initializeLastMessageId();
+        {% endif %}
+      }, 100);
+    });
+  }
+
+  // Re-initialize when URL changes (chat selection changes)
+  // This handles when user clicks on different chats
+  let currentUrl = window.location.href;
+  setInterval(function() {
+    if (window.location.href !== currentUrl) {
+      currentUrl = window.location.href;
+      stopPolling();
+      
+      // Check if new chat is selected from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const newChatId = urlParams.get('chat_id');
+      
+      if (newChatId) {
+        lastMessageId = 0;
+        setTimeout(function() {
+          initializeLastMessageId();
+          startPolling(parseInt(newChatId, 10));
+        }, 500);
+      }
+    }
+  }, 1000);
+</script>
 {% endblock body %}

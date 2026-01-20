@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Chat Room
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/chat-room.css' %}">
+{% endblock extra_css %}
+
+{% block body %}
+<div class="chat-room-container">
+  <!-- Chat Header -->
+  <div class="chat-header">
+    <a href="/all-chats" class="back-button">
+      <span class="back-icon">←</span>
+      <span class="back-text">Back</span>
+    </a>
+    <div class="chat-user-info">
+      {% if chat.user1 == request.user %}
+        <div class="chat-avatar">
+          {{ chat.user2.username|first|upper }}
+        </div>
+        <div class="chat-user-details">
+          <h3 class="chat-username">{{ chat.user2.username }}</h3>
+          <span class="chat-status">Online</span>
+        </div>
+      {% else %}
+        <div class="chat-avatar">
+          {{ chat.user1.username|first|upper }}
+        </div>
+        <div class="chat-user-details">
+          <h3 class="chat-username">{{ chat.user1.username }}</h3>
+          <span class="chat-status">Online</span>
+        </div>
+      {% endif %}
+    </div>
+    <div class="chat-header-actions">
+      <button class="header-action-btn" title="More options">
+        <span>⋯</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages Area -->
+  <div class="messages-container" id="messagesContainer">
+    {% for message in chat.messages.all %}
+      <div class="message-wrapper {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
+        <div class="message-bubble">
+          <p class="message-text">{{ message.text }}</p>
+          <span class="message-time">{{ message.created_at|date:"H:i" }}</span>
+        </div>
+      </div>
+    {% empty %}
+      <div class="no-messages">
+        <div class="no-messages-icon">💬</div>
+        <p class="no-messages-text">No messages yet. Start the conversation!</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Message Input Area -->
+  <div class="message-input-container">
+    <form method="POST" action="{% url 'chat-room' chat.id %}" class="message-form" id="messageForm">
+      {% csrf_token %}
+      <div class="input-wrapper">
+        <input 
+          type="text" 
+          name="message" 
+          class="message-input" 
+          placeholder="Type a message..." 
+          autocomplete="off"
+          required
+          id="messageInput"
+        >
+        <button type="submit" class="send-button" id="sendButton">
+          <span class="send-icon">➤</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+<script>
+  // Auto-scroll to bottom when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (messagesContainer) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  });
+
+  // Auto-scroll after form submission (if staying on same page)
+  const messageForm = document.getElementById('messageForm');
+  if (messageForm) {
+    messageForm.addEventListener('submit', function() {
+      setTimeout(function() {
+        const messagesContainer = document.getElementById('messagesContainer');
+        if (messagesContainer) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      }, 100);
+    });
+  }
+</script>
+
+<script>
+  let lastMessageId = 0;
+  let pollingInterval = null;
+  const chatId = {{ chat.id }};
+
+  // Initialize lastMessageId from existing messages
+  function initializeLastMessageId() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (!messagesContainer) return;
+
+    const messageWrappers = messagesContainer.querySelectorAll('.message-wrapper');
+    if (messageWrappers.length > 0) {
+      const lastWrapper = messageWrappers[messageWrappers.length - 1];
+      const messageId = lastWrapper.getAttribute('data-message-id');
+      if (messageId) {
+        lastMessageId = parseInt(messageId, 10);
+      }
+    } else {
+      lastMessageId = 0;
+    }
+  }
+
+  // Function to append new message to the chat
+  function appendMessage(msg) {
+    const container = document.getElementById('messagesContainer');
+    if (!container) return;
+
+    // Remove "no messages" placeholder if it exists
+    const noMessages = container.querySelector('.no-messages');
+    if (noMessages) {
+      noMessages.remove();
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = msg.is_me
+      ? 'message-wrapper message-sent'
+      : 'message-wrapper message-received';
+    wrapper.setAttribute('data-message-id', msg.id);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+
+    const text = document.createElement('p');
+    text.className = 'message-text';
+    text.textContent = msg.text;
+
+    const time = document.createElement('span');
+    time.className = 'message-time';
+    time.textContent = msg.created_at;
+
+    bubble.appendChild(text);
+    bubble.appendChild(time);
+    wrapper.appendChild(bubble);
+    container.appendChild(wrapper);
+
+    container.scrollTop = container.scrollHeight;
+    lastMessageId = msg.id;
+  }
+
+  // Start polling for new messages
+  function startPolling() {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+
+    pollingInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/poll-messages/${chatId}/?last_id=${lastMessageId}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          data.messages.forEach(msg => {
+            appendMessage(msg);
+          });
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 2000); // Poll every 2 seconds
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeLastMessageId();
+    startPolling();
+  });
+</script>
+
+
+
+
+{% endblock body %}
