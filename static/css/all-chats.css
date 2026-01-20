@@ -8,10 +8,11 @@
 
 .chat-container {
   display: flex;
-  height: calc(100vh - 60px); /* Adjust based on your navbar height */
-  max-height: 100vh;
+  height: calc(100vh - 70px); /* Adjust based on your navbar height */
+  min-height: calc(100vh - 70px);
   background: #0f1419;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  margin-top: 0;
 }
 
 /* Left Sidebar */
