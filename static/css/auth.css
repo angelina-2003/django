@@ -1,15 +1,15 @@
 /* Auth Pages Styles - Register, Login, Setup Profile */
 
 :root {
-  --auth-bg: #0f1419;
-  --auth-card-bg: #1a1f2e;
-  --auth-border: #2a3441;
-  --auth-text: #e1e8ed;
-  --auth-text-secondary: #8b98a5;
+  --auth-bg: #0f0a1a;
+  --auth-card-bg: #1a1526;
+  --auth-border: #3a2f4a;
+  --auth-text: #e9d5ff;
+  --auth-text-secondary: #b8a9e8;
   --auth-primary: #8b7fb8;
-  --auth-primary-hover: #6b5b95;
-  --auth-input-bg: #252b3a;
-  --auth-input-focus: rgba(79, 195, 247, 0.1);
+  --auth-primary-hover: #9b8fc8;
+  --auth-input-bg: #1a1526;
+  --auth-input-focus: rgba(139, 127, 184, 0.15);
 }
 
 * {
@@ -39,7 +39,7 @@ body.auth-page::before {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(79, 195, 247, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(139, 127, 184, 0.1) 0%, transparent 70%);
   animation: rotate 20s linear infinite;
   z-index: 0;
 }
@@ -73,12 +73,12 @@ body.auth-page::before {
 }
 
 .auth-card {
-  background: var(--auth-card-bg);
-  border: 1px solid var(--auth-border);
-  border-radius: 20px;
+  background: rgba(10, 5, 21, 0.9);
+  border: 1px solid rgba(139, 127, 184, 0.3);
+  border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 0 40px rgba(139, 127, 184, 0.2), 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(139, 127, 184, 0.05);
+  backdrop-filter: blur(15px);
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
@@ -154,7 +154,7 @@ body.auth-page::before {
 .form-input:focus {
   border-color: var(--auth-primary);
   box-shadow: 0 0 0 3px var(--auth-input-focus);
-  background: #2a3441;
+  background: #1a1526;
 }
 
 .form-floating {
@@ -230,7 +230,7 @@ body.auth-page::before {
 .auth-btn:hover {
   background: var(--auth-primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(79, 195, 247, 0.3);
+  box-shadow: 0 8px 20px rgba(139, 127, 184, 0.3);
 }
 
 .auth-btn:active {
@@ -342,13 +342,13 @@ body.auth-page::before {
   border-radius: 50%;
   background: var(--auth-primary);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(79, 195, 247, 0.4);
+  box-shadow: 0 2px 8px rgba(139, 127, 184, 0.4);
   transition: all 0.2s ease;
 }
 
 .range-input::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.6);
+  box-shadow: 0 4px 12px rgba(139, 127, 184, 0.6);
 }
 
 .range-input::-moz-range-thumb {
@@ -358,13 +358,13 @@ body.auth-page::before {
   background: var(--auth-primary);
   cursor: pointer;
   border: none;
-  box-shadow: 0 2px 8px rgba(79, 195, 247, 0.4);
+  box-shadow: 0 2px 8px rgba(139, 127, 184, 0.4);
   transition: all 0.2s ease;
 }
 
 .range-input::-moz-range-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.6);
+  box-shadow: 0 4px 12px rgba(139, 127, 184, 0.6);
 }
 
 .range-value {
