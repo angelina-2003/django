@@ -14,7 +14,7 @@
       <div class="container-fluid">
         <div class="d-flex align-items-center">
           <a class="navbar-brand brand-logo" href="/">
-            <span class="brand-icon">🌙</span>
+            <img src="{% static 'logo2.png' %}" alt="Logo" class="brand-icon">
             <span class="brand-text">Hush Hours</span>
           </a>
           <div class="dropdown add-dropdown">
@@ -23,9 +23,9 @@
             </button>
             <ul class="dropdown-menu custom-dropdown add-menu" id="addDropdown" aria-labelledby="addButton">
               <li>
-                <a class="dropdown-item" href="/featured-groups">
+                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#searchGroupModal">
                   <span class="dropdown-icon">⭐</span>
-                  <span>Featured</span>
+                  <span>Featured Groups</span>
                 </a>
               </li>
               <li>
@@ -45,7 +45,7 @@
           </div>
         </div>
 
-
+        
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -55,8 +55,20 @@
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
               <a class="nav-link profile-link" href="/profile" id="profile-link">
-                <span class="nav-icon">👤</span>
-                <span class="nav-text">Profile</span>
+                {% if user.is_authenticated and user.profile.avatar and user.profile.avatar != "default" %}
+                  <img src="{% static 'avatars/' %}{{ user.profile.avatar }}.png" alt="Avatar" class="nav-avatar-icon" style="width: 56px; height: 56px; border-radius: 6px; object-fit: cover; background: transparent; border: none; box-shadow: none;">
+                {% else %}
+                  <span class="nav-icon">👤</span>
+                {% endif %}
+                <span class="nav-text">
+                  {% if user.is_authenticated and user.profile.display_name %}
+                    {{ user.profile.display_name }}
+                  {% elif user.is_authenticated %}
+                    {{ user.username }}
+                  {% else %}
+                    Profile
+                  {% endif %}
+                </span>
               </a>
             </li>
             <li class="nav-item dropdown">
@@ -175,7 +187,130 @@
       </div>
     </div>
 
+    <!-- Search Group Modal -->
+    <div class="modal fade" id="searchGroupModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light">
+          <div class="modal-header">
+            <h5 class="modal-title">Search Groups</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="search-user-input-wrapper">
+              <span class="search-user-icon">🔍</span>
+              <input
+                type="text"
+                class="form-control search-user-input"
+                placeholder="Search by group name..."
+                id="searchGroupInput"
+              >
+            </div>
+            <div class="mt-3 search-results-container" id="searchGroupResults"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Browser History Management - Back button always goes to all-chats -->
+    <script>
+      (function() {
+        const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+        const currentPath = window.location.pathname;
+        const allChatsPath = '/all-chats';
+        const loginPath = '/login';
+        
+        // Pages that authenticated users should never access
+        const restrictedPages = ['/login', '/register'];
+        
+        // Pages that require authentication
+        const protectedPages = ['/profile', '/edit-profile', '/all-chats', '/create-group', '/chat/', '/setup-profile'];
+
+        // Immediate redirects on page load
+        if (isAuthenticated) {
+          // If authenticated user is on login/register, redirect immediately
+          if (restrictedPages.includes(currentPath)) {
+            window.location.replace(allChatsPath);
+            return;
+          }
+        } else {
+          // If not authenticated and on protected page, redirect to login
+          if (protectedPages.some(page => currentPath.startsWith(page) || currentPath === page)) {
+            window.location.replace(loginPath);
+            return;
+          }
+        }
+
+        // For authenticated users: ALWAYS make back button go to all-chats
+        if (isAuthenticated) {
+          // Replace current history entry with all-chats as the previous page
+          // This ensures back button always goes to all-chats
+          if (currentPath !== allChatsPath) {
+            // Push all-chats as the previous page in history
+            history.pushState({ target: allChatsPath }, '', currentPath);
+          }
+
+          // Handle browser back/forward button - ALWAYS redirect to all-chats
+          let isNavigating = false;
+          window.addEventListener('popstate', function(event) {
+            if (isNavigating) return;
+            
+            const targetPath = window.location.pathname;
+            
+            // If going back to all-chats, allow it
+            if (targetPath === allChatsPath) {
+              return;
+            }
+            
+            // For any other page, redirect to all-chats
+            isNavigating = true;
+            history.pushState({ target: allChatsPath }, '', allChatsPath);
+            window.location.replace(allChatsPath);
+            setTimeout(() => { isNavigating = false; }, 100);
+          });
+
+          // Intercept link clicks to restricted pages
+          document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (!link || !link.href) return;
+            
+            try {
+              const url = new URL(link.href, window.location.origin);
+              const path = url.pathname;
+              
+              if (restrictedPages.includes(path)) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = allChatsPath;
+                return false;
+              }
+            } catch (err) {
+              // Invalid URL, ignore
+            }
+          }, true);
+        } else {
+          // For unauthenticated users, handle back button normally but prevent access to protected pages
+          let isNavigating = false;
+          window.addEventListener('popstate', function(event) {
+            if (isNavigating) return;
+            
+            const targetPath = window.location.pathname;
+            
+            // If not authenticated and trying to access protected pages, redirect to login
+            if (protectedPages.some(page => targetPath.startsWith(page) || targetPath === page)) {
+              isNavigating = true;
+              history.pushState({ authenticated: false, page: loginPath }, '', loginPath);
+              window.location.replace(loginPath);
+              setTimeout(() => { isNavigating = false; }, 100);
+            }
+          });
+        }
+      })();
+    </script>
 
     <script>
       const input = document.getElementById("searchUserInput");
@@ -317,6 +452,108 @@
             console.error('Search error:', error);
             // Show user-friendly error message
             resultsBox.innerHTML = '<div class="search-no-results">Error searching users. Please try again.</div>';
+          }
+        });
+      }
+    </script>
+
+    <script>
+      // Search Groups functionality
+      const groupInput = document.getElementById("searchGroupInput");
+      const groupResultsBox = document.getElementById("searchGroupResults");
+
+      if (groupInput && groupResultsBox) {
+        groupInput.addEventListener("input", async () => {
+          const query = groupInput.value.trim();
+
+          if (!query) {
+            groupResultsBox.innerHTML = "";
+            return;
+          }
+
+          try {
+            const response = await fetch(`/api/search-groups/?q=${encodeURIComponent(query)}`);
+
+            if (!response.ok) {
+              throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            }
+
+            let data;
+            try {
+              data = await response.json();
+            } catch (jsonError) {
+              throw new Error('Invalid JSON response from server');
+            }
+
+            if (!data || typeof data !== 'object' || !Array.isArray(data.results)) {
+              throw new Error('Invalid response format');
+            }
+
+            if (data.results.length === 0) {
+              groupResultsBox.innerHTML = '<div class="search-no-results">No groups found</div>';
+              return;
+            }
+
+            groupResultsBox.innerHTML = "";
+            
+            data.results.forEach(group => {
+              if (!group || typeof group.id === 'undefined' || !group.name) {
+                return;
+              }
+
+              const escapedName = escapeHtml(String(group.name));
+              const escapedId = escapeHtml(String(group.id));
+              const escapedDesc = group.description ? escapeHtml(String(group.description)) : 'No description';
+
+              const itemDiv = document.createElement('div');
+              itemDiv.className = 'search-result-item';
+
+              const groupDiv = document.createElement('div');
+              groupDiv.className = 'search-result-user';
+              groupDiv.style.flex = '1';
+
+              const avatarDiv = document.createElement('div');
+              avatarDiv.className = 'search-result-avatar';
+              avatarDiv.textContent = '👥';
+
+              const infoDiv = document.createElement('div');
+              infoDiv.className = 'search-result-info';
+
+              const nameDiv = document.createElement('div');
+              nameDiv.className = 'search-result-username';
+              nameDiv.textContent = escapedName;
+
+              const descDiv = document.createElement('div');
+              descDiv.style.fontSize = '0.85rem';
+              descDiv.style.color = '#8b98a5';
+              descDiv.style.marginTop = '4px';
+              descDiv.textContent = escapedDesc.substring(0, 50) + (escapedDesc.length > 50 ? '...' : '');
+
+              infoDiv.appendChild(nameDiv);
+              infoDiv.appendChild(descDiv);
+              groupDiv.appendChild(avatarDiv);
+              groupDiv.appendChild(infoDiv);
+
+              const actionDiv = document.createElement('div');
+              // Always show "Open" link - join button will appear inside the group chat interface
+              const link = document.createElement('a');
+              link.href = `/all-chats?group_id=${escapedId}`;
+              link.className = 'search-result-chat-btn';
+              if (group.is_member) {
+                link.innerHTML = '<span>💬</span> <span> Open</span>';
+              } else {
+                link.innerHTML = '<span>👁️</span> <span> View</span>';
+              }
+              actionDiv.appendChild(link);
+
+              itemDiv.appendChild(groupDiv);
+              itemDiv.appendChild(actionDiv);
+              groupResultsBox.appendChild(itemDiv);
+            });
+
+          } catch (error) {
+            console.error('Search error:', error);
+            groupResultsBox.innerHTML = '<div class="search-no-results">Error searching groups. Please try again.</div>';
           }
         });
       }

@@ -16,10 +16,10 @@ All Chats
   <div class="chat-sidebar">
     <!-- Navigation Bar -->
     <div class="chat-nav">
-      <a href="?filter=all" class="nav-btn {% if request.GET.filter == 'all' or not request.GET.filter %}active{% endif %}">All</a>
-      <a href="?filter=group" class="nav-btn {% if request.GET.filter == 'group' %}active{% endif %}">👥</a>
-      <a href="?filter=private" class="nav-btn {% if request.GET.filter == 'private' %}active{% endif %}">👤</a>
-      <a href="?filter=heart" class="nav-btn {% if request.GET.filter == 'heart' %}active{% endif %}">♥️</a>
+      <a href="?filter=all{% if selected_chat %}&chat_id={{ selected_chat.id }}{% elif selected_group %}&group_id={{ selected_group.id }}{% endif %}" class="nav-btn {% if request.GET.filter == 'all' or not request.GET.filter %}active{% endif %}">All</a>
+      <a href="?filter=group{% if selected_group %}&group_id={{ selected_group.id }}{% endif %}" class="nav-btn {% if request.GET.filter == 'group' %}active{% endif %}">👥</a>
+      <a href="?filter=private{% if selected_chat %}&chat_id={{ selected_chat.id }}{% endif %}" class="nav-btn {% if request.GET.filter == 'private' %}active{% endif %}">👤</a>
+      <a href="?filter=heart{% if selected_chat %}&chat_id={{ selected_chat.id }}{% elif selected_group %}&group_id={{ selected_group.id }}{% endif %}" class="nav-btn {% if request.GET.filter == 'heart' %}active{% endif %}">♥️</a>
     </div>
 
     <!-- Search Bar Section -->
@@ -48,20 +48,31 @@ All Chats
     <!-- Chat List -->
     <div class="chat-list-container">
       <div class="chat-list" id="chatList">
-        {% for chat in chats %}
-        <a href="?chat_id={{ chat.id }}" class="chat-item {% if selected_chat and selected_chat.id == chat.id %}active{% endif %}">
+        <!-- Private Chats -->
+        {% for chat in private_chats %}
+        <a href="?chat_id={{ chat.id }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="chat-item {% if selected_chat and selected_chat.id == chat.id %}active{% endif %}" data-chat-id="{{ chat.id }}" data-chat-type="private">
           <div class="chat-avatar">
-            <div class="avatar-circle">
-              {% if chat.user1 == request.user %}
-                {{ chat.user2.username|first|upper }}
+            {% if chat.user1 == request.user %}
+              {% if chat.user2.profile.avatar and chat.user2.profile.avatar != "default" %}
+                <img src="{% static 'avatars/' %}{{ chat.user2.profile.avatar }}.png" alt="{{ chat.user2.username }}" style="width: 48px; height: 48px; border-radius: 14px; object-fit: cover;">
               {% else %}
-                {{ chat.user1.username|first|upper }}
+                <div class="avatar-circle">
+                  {{ chat.user2.username|first|upper }}
+                </div>
               {% endif %}
-            </div>
+            {% else %}
+              {% if chat.user1.profile.avatar and chat.user1.profile.avatar != "default" %}
+                <img src="{% static 'avatars/' %}{{ chat.user1.profile.avatar }}.png" alt="{{ chat.user1.username }}" style="width: 48px; height: 48px; border-radius: 14px; object-fit: cover;">
+              {% else %}
+                <div class="avatar-circle">
+                  {{ chat.user1.username|first|upper }}
+                </div>
+              {% endif %}
+            {% endif %}
           </div>
 
           <div class="chat-content">
-            <div class="chat-header">
+            <div class="chat-preview">
               <h5 class="chat-name">
                 {% if chat.user1 == request.user %}
                   {{ chat.user2.username }}
@@ -69,9 +80,6 @@ All Chats
                   {{ chat.user1.username }}
                 {% endif %}
               </h5>
-            </div>
-
-            <div class="chat-preview">
               {% with chat.messages.last as last_msg %}
                 {% if last_msg %}
                   <p class="chat-message">{{ last_msg.text|truncatewords:10 }}</p>
@@ -81,10 +89,42 @@ All Chats
               {% endwith %}
             </div>
           </div>
+          
+          <div class="chat-heart" data-chat-id="{{ chat.id }}" data-chat-type="private" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite({{ chat.id }}, null, this);" style="pointer-events: auto;">
+            <span class="heart-icon {% if chat.id in favorite_chat_ids %}favorited{% endif %}">{% if chat.id in favorite_chat_ids %}❤️{% else %}🤍{% endif %}</span>
+          </div>
         </a>
-      {% empty %}
-        <p class="text-muted p-3">No chats yet</p>
-      {% endfor %}
+        {% endfor %}
+
+        <!-- Groups -->
+        {% for group in groups %}
+        <a href="?group_id={{ group.id }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="chat-item {% if selected_group and selected_group.id == group.id %}active{% endif %}" data-group-id="{{ group.id }}" data-chat-type="group">
+          <div class="chat-avatar">
+            <div class="avatar-circle group-avatar" style="font-size: 32px;">👥</div>
+          </div>
+
+          <div class="chat-content">
+            <div class="chat-preview">
+              <h5 class="chat-name">{{ group.name }}</h5>
+              {% with group.messages.last as last_msg %}
+                {% if last_msg %}
+                  <p class="chat-message">{{ last_msg.sender.username }}: {{ last_msg.text|truncatewords:8 }}</p>
+                {% else %}
+                  <p class="chat-message text-muted">No messages yet</p>
+                {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+          
+          <div class="chat-heart" data-group-id="{{ group.id }}" data-chat-type="group" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(null, {{ group.id }}, this);" style="pointer-events: auto;">
+            <span class="heart-icon {% if group.id in favorite_group_ids %}favorited{% endif %}">{% if group.id in favorite_group_ids %}❤️{% else %}🤍{% endif %}</span>
+          </div>
+        </a>
+        {% endfor %}
+
+        {% if not private_chats and not groups %}
+          <p class="text-muted p-3">No chats yet</p>
+        {% endif %}
 
       </div>
     </div>
@@ -93,72 +133,340 @@ All Chats
   </div>
 
   <!-- Right Side - Chat Window -->
-  <div class="chat-window">
-    {% if selected_chat %}
-      <!-- Chat Header -->
-      <div class="chat-header">
-        <div class="chat-user-info">
-          <div class="chat-avatar">
-            {{ other_user.username|first|upper }}
-          </div>
-          <div class="chat-user-details">
-            <h3 class="chat-username">{{ other_user.username }}</h3>
-            <span class="chat-status">Online</span>
-          </div>
-        </div>
-        <div class="chat-header-actions">
-          <button class="header-action-btn" title="More options">
-            <span>⋯</span>
+  <div class="chat-window-container {% if selected_group %}has-group-info{% endif %} {% if selected_chat %}has-private-chat-info{% endif %}">
+    <div class="chat-window {% if selected_group %}has-group-info{% endif %} {% if selected_chat %}has-private-chat-info{% endif %} {% if selected_chat %}private-chat-window{% elif selected_group %}group-chat-window{% endif %}">
+      {% if selected_chat %}
+        <!-- Private Chat Header -->
+        <div class="chat-header">
+          <button class="back-button-mobile" onclick="closeChatWindow()" aria-label="Back to chat list">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
           </button>
-        </div>
-      </div>
-
-      <!-- Messages Area -->
-      <div class="messages-container" id="messagesContainer">
-        {% for message in selected_chat.messages.all %}
-          <div class="message-wrapper {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
-            <div class="message-bubble">
-              <p class="message-text">{{ message.text }}</p>
-              <span class="message-time">{{ message.created_at|date:"H:i" }}</span>
+          <div class="chat-user-info">
+            <div class="chat-avatar">
+              {% if other_user.profile.avatar and other_user.profile.avatar != "default" %}
+                <img src="{% static 'avatars/' %}{{ other_user.profile.avatar }}.png" alt="{{ other_user.username }}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover;">
+              {% else %}
+                {{ other_user.username|first|upper }}
+              {% endif %}
+            </div>
+            <div class="chat-user-details">
+              <h3 class="chat-username">{{ other_user.username }}</h3>
+              <span class="chat-status">Online</span>
             </div>
           </div>
-        {% empty %}
-          <div class="no-messages">
-            <div class="no-messages-icon">💬</div>
-            <p class="no-messages-text">No messages yet. Start the conversation!</p>
+          <div class="chat-header-actions">
           </div>
-        {% endfor %}
-      </div>
+        </div>
 
-      <!-- Message Input Area -->
-      <div class="message-input-container">
-        <form method="POST" action="?chat_id={{ selected_chat.id }}" class="message-form" id="messageForm">
-          {% csrf_token %}
-          <div class="input-wrapper">
-            <input 
-              type="text" 
-              name="message" 
-              class="message-input" 
-              placeholder="Type a message..." 
-              autocomplete="off"
-              required
-              id="messageInput"
-            >
-            <button type="submit" class="send-button" id="sendButton">
-              <span class="send-icon">➤</span>
-            </button>
+        <!-- Messages Area -->
+        <div class="messages-container" id="messagesContainer">
+          {% for message in selected_chat.messages.all %}
+            <div class="message-wrapper {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
+              {% if message.sender == request.user %}
+                <div class="message-bubble">
+                  <p class="message-text">{{ message.text }}</p>
+                </div>
+                <div class="message-avatar-small">
+                  {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
+                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;">
+                  {% else %}
+                    <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="message-avatar-small">
+                  {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
+                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;">
+                  {% else %}
+                    <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
+                  {% endif %}
+                </div>
+                <div class="message-bubble">
+                  <p class="message-text">{{ message.text }}</p>
+                </div>
+              {% endif %}
+            </div>
+          {% empty %}
+            <div class="no-messages">
+              <div class="no-messages-icon">💬</div>
+              <p class="no-messages-text">No messages yet. Start the conversation!</p>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Message Input Area -->
+        <div class="message-input-container">
+          <form method="POST" action="?chat_id={{ selected_chat.id }}" class="message-form" id="messageForm">
+            {% csrf_token %}
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                name="message" 
+                class="message-input" 
+                placeholder="Type a message..." 
+                autocomplete="off"
+                required
+                id="messageInput"
+              >
+              <button type="submit" class="send-button" id="sendButton">
+                <span class="send-icon">➤</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+      {% elif selected_group %}
+        <!-- Group Chat Header -->
+        <div class="chat-header">
+          <button class="back-button-mobile" onclick="closeChatWindow()" aria-label="Back to chat list">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+          </button>
+          <div class="chat-user-info">
+            <div class="chat-avatar group-avatar-header">👥</div>
+            <div class="chat-user-details">
+              <h3 class="chat-username">{{ selected_group.name }}</h3>
+              <span class="chat-status">{{ selected_group.members.count }} members</span>
+            </div>
           </div>
-        </form>
+          <div class="chat-header-actions">
+            <!-- Group info sidebar is always visible -->
+          </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-container" id="messagesContainer">
+          {% for message in selected_group.messages.all %}
+            <div class="message-wrapper {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
+              {% if message.sender == request.user %}
+                <div class="message-bubble">
+                  <p class="message-text">{{ message.text }}</p>
+                </div>
+                <div class="message-avatar-small">
+                  {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
+                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;">
+                  {% else %}
+                    <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="message-avatar-small">
+                  {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
+                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;">
+                  {% else %}
+                    <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
+                  {% endif %}
+                </div>
+                <div class="message-bubble">
+                  <div class="message-sender-name" style="font-size: 0.75rem; color: #8b98a5; margin-bottom: 4px;">{{ message.sender.username }}</div>
+                  <p class="message-text">{{ message.text }}</p>
+                </div>
+              {% endif %}
+            </div>
+          {% empty %}
+            <div class="no-messages">
+              <div class="no-messages-icon">💬</div>
+              <p class="no-messages-text">No messages yet. Start the conversation!</p>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Message Input Area -->
+        <div class="message-input-container">
+          {% if is_group_creator or is_group_member %}
+            <form method="POST" action="?group_id={{ selected_group.id }}" class="message-form" id="messageForm">
+              {% csrf_token %}
+              <div class="input-wrapper">
+                <input 
+                  type="text" 
+                  name="message" 
+                  class="message-input" 
+                  placeholder="Type a message..." 
+                  autocomplete="off"
+                  required
+                  id="messageInput"
+                >
+                <button type="submit" class="send-button" id="sendButton">
+                  <span class="send-icon">➤</span>
+                </button>
+              </div>
+            </form>
+          {% else %}
+            <form method="POST" action="{% url 'join-group' selected_group.id %}" class="message-form" id="joinForm">
+              {% csrf_token %}
+              <button type="submit" class="join-group-btn" style="width: 100%; padding: 14px; background: #4fc3f7; color: #0f1419; border: none; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer;">
+                Join Group
+              </button>
+            </form>
+          {% endif %}
+        </div>
+
+      {% else %}
+        <!-- Placeholder when no chat is selected -->
+        <div class="chat-window-placeholder">
+          <div class="placeholder-content">
+            <div class="placeholder-icon">💬</div>
+            <h3>Select a chat to start messaging</h3>
+            <p>Choose a conversation from the left sidebar to begin</p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Private Chat Info Sidebar -->
+    {% if selected_chat %}
+    <div class="private-chat-info-sidebar active" id="privateChatInfoSidebar">
+      <div class="private-chat-info-header">
+        <h4>Profile</h4>
       </div>
-    {% else %}
-      <!-- Placeholder when no chat is selected -->
-      <div class="chat-window-placeholder">
-        <div class="placeholder-content">
-          <div class="placeholder-icon">💬</div>
-          <h3>Select a chat to start messaging</h3>
-          <p>Choose a conversation from the left sidebar to begin</p>
+      
+      <div class="private-chat-info-content">
+        <div class="profile-avatar-section">
+          {% if other_user.profile.avatar and other_user.profile.avatar != "default" %}
+            <img src="{% static 'avatars/' %}{{ other_user.profile.avatar }}.png" alt="{{ other_user.username }}" class="profile-avatar-large" style="width: 120px; height: 120px; border-radius: 20px; object-fit: cover;">
+          {% else %}
+            <div class="profile-avatar-large">{{ other_user.username|first|upper }}</div>
+          {% endif %}
+          {% if other_user.profile.display_name %}
+            <h3>{{ other_user.profile.display_name }}</h3>
+            <p class="profile-username">@{{ other_user.username }}</p>
+          {% else %}
+            <h3>{{ other_user.username }}</h3>
+          {% endif %}
+        </div>
+
+        <div class="profile-details-section">
+          <div class="profile-detail-item">
+            <span class="detail-label">Username</span>
+            <span class="detail-value">@{{ other_user.username }}</span>
+          </div>
+
+          {% if other_user.profile.display_name %}
+            <div class="profile-detail-item">
+              <span class="detail-label">Display Name</span>
+              <span class="detail-value">{{ other_user.profile.display_name }}</span>
+            </div>
+          {% endif %}
+
+          <div class="profile-detail-item">
+            <span class="detail-label">Age</span>
+            <span class="detail-value">
+              {% if other_user.profile.age %}
+                {{ other_user.profile.age }}
+              {% else %}
+                -
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="profile-detail-item">
+            <span class="detail-label">Gender</span>
+            <span class="detail-value">
+              {% if other_user.profile.gender %}
+                {{ other_user.profile.get_gender_display }}
+              {% else %}
+                -
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="profile-detail-item">
+            <span class="detail-label">Hush Points</span>
+            <span class="detail-value">{{ other_user.profile.hush_points }}</span>
+          </div>
+        </div>
+
+        <div class="gifts-section">
+          <h5 class="section-title" style="margin-top: 24px; margin-bottom: 16px;">Gifts Received</h5>
+          <div class="gifts-grid">
+            <div class="gift-item">
+              <img src="{% static 'gifts/letter.png' %}" alt="Love Letter" style="width: 100%; height: 100%; object-fit: contain;">
+              <span class="gift-count">{{ other_user_gift_counts.love_letter|default:0 }}</span>
+            </div>
+            <div class="gift-item">
+              <img src="{% static 'gifts/clove.png' %}" alt="Clove" style="width: 100%; height: 100%; object-fit: contain;">
+              <span class="gift-count">{{ other_user_gift_counts.clove|default:0 }}</span>
+            </div>
+            <div class="gift-item">
+              <img src="{% static 'gifts/goldenheart.png' %}" alt="Golden Heart" style="width: 100%; height: 100%; object-fit: contain;">
+              <span class="gift-count">{{ other_user_gift_counts.golden_heart|default:0 }}</span>
+            </div>
+            <div class="gift-item">
+              <img src="{% static 'gifts/pearl.png' %}" alt="Pearl" style="width: 100%; height: 100%; object-fit: contain;">
+              <span class="gift-count">{{ other_user_gift_counts.pearl|default:0 }}</span>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+    {% endif %}
+
+    <!-- Group Info Sidebar -->
+    {% if selected_group %}
+    <div class="group-info-sidebar active" id="groupInfoSidebar">
+      <div class="group-info-header">
+        <h4>Group Info</h4>
+      </div>
+      
+      <div class="group-info-content">
+        <div class="group-name-section">
+          <div class="group-avatar-large">👥</div>
+          <h3>{{ selected_group.name }}</h3>
+          {% if selected_group.description %}
+            <p class="group-description">{{ selected_group.description }}</p>
+          {% endif %}
+        </div>
+
+        <div class="group-members-section">
+          <h5 class="section-title">Creator</h5>
+          <div class="member-item creator-item">
+              {% if selected_group.creator.profile.avatar and selected_group.creator.profile.avatar != "default" %}
+              <img src="{% static 'avatars/' %}{{ selected_group.creator.profile.avatar }}.png" alt="{{ selected_group.creator.username }}" class="member-avatar" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
+            {% else %}
+              <div class="member-avatar">{{ selected_group.creator.username|first|upper }}</div>
+            {% endif %}
+            <div class="member-info">
+              <div class="member-name">{{ selected_group.creator.username }}</div>
+              <div class="member-role">Creator</div>
+            </div>
+            <div class="member-username-display">{{ selected_group.creator.username }}</div>
+          </div>
+
+          <h5 class="section-title" style="margin-top: 20px;">Members ({{ selected_group.members.count }})</h5>
+          <div class="members-list">
+            {% for member in selected_group.members.all %}
+              {% if member != selected_group.creator %}
+                <div class="member-item">
+                  {% if member.profile.avatar and member.profile.avatar != "default" %}
+                    <img src="{% static 'avatars/' %}{{ member.profile.avatar }}.png" alt="{{ member.username }}" class="member-avatar" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
+                  {% else %}
+                    <div class="member-avatar">{{ member.username|first|upper }}</div>
+                  {% endif %}
+                  <div class="member-info">
+                    <div class="member-name">{{ member.username }}</div>
+                  </div>
+                  <div class="member-username-display">{{ member.username }}</div>
+                </div>
+              {% endif %}
+            {% empty %}
+              <p class="text-muted">No other members</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% if is_group_member and not is_group_creator %}
+          <div class="group-actions">
+            <form method="POST" action="{% url 'leave-group' selected_group.id %}">
+              {% csrf_token %}
+              <button type="submit" class="leave-group-btn">Leave Group</button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+    </div>
     {% endif %}
   </div>
 </div>
@@ -167,6 +475,8 @@ All Chats
   let lastMessageId = 0;
   let pollingInterval = null;
   let currentChatId = null;
+  let chatListPollingInterval = null;
+  let currentChatIds = new Set();
 
   // Auto-scroll to bottom when page loads or chat changes
   function scrollToBottom() {
@@ -218,13 +528,41 @@ All Chats
     text.className = 'message-text';
     text.textContent = msg.text;
 
-    const time = document.createElement('span');
-    time.className = 'message-time';
-    time.textContent = msg.created_at;
-
     bubble.appendChild(text);
-    bubble.appendChild(time);
-    wrapper.appendChild(bubble);
+
+    // Create avatar element
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'message-avatar-small';
+    
+    if (msg.avatar && msg.avatar !== 'default') {
+      const avatarImg = document.createElement('img');
+      avatarImg.src = `/static/avatars/${msg.avatar}.png`;
+      avatarImg.alt = msg.sender || 'User';
+      avatarImg.style.cssText = 'width: 52px; height: 52px; border-radius: 8px; object-fit: cover;';
+      avatarDiv.appendChild(avatarImg);
+    } else {
+      const avatarCircle = document.createElement('div');
+      avatarCircle.className = 'avatar-circle small';
+      avatarCircle.textContent = (msg.sender || 'U').charAt(0).toUpperCase();
+      avatarDiv.appendChild(avatarCircle);
+    }
+
+    if (msg.is_me) {
+      wrapper.appendChild(bubble);
+      wrapper.appendChild(avatarDiv);
+    } else {
+      // Add sender name for group chats if needed
+      if (msg.sender && !msg.is_me) {
+        const senderName = document.createElement('div');
+        senderName.className = 'message-sender-name';
+        senderName.style.cssText = 'font-size: 0.75rem; color: #8b98a5; margin-bottom: 4px;';
+        senderName.textContent = msg.sender;
+        bubble.insertBefore(senderName, text);
+      }
+      wrapper.appendChild(avatarDiv);
+      wrapper.appendChild(bubble);
+    }
+
     container.appendChild(wrapper);
 
     scrollToBottom();
@@ -279,14 +617,425 @@ All Chats
     lastMessageId = 0;
   }
 
-  // Initialize on page load
+  // Function to show chat window on mobile
+  function showChatWindow() {
+    const chatWindow = document.querySelector('.chat-window');
+    const chatSidebar = document.querySelector('.chat-sidebar');
+    if (chatWindow && chatSidebar) {
+      chatWindow.classList.add('active');
+      chatSidebar.classList.add('hidden-on-mobile');
+    }
+  }
+
+  // Function to close chat window on mobile
+  function closeChatWindow() {
+    const chatWindow = document.querySelector('.chat-window');
+    const chatSidebar = document.querySelector('.chat-sidebar');
+    if (chatWindow && chatSidebar) {
+      chatWindow.classList.remove('active');
+      chatSidebar.classList.remove('hidden-on-mobile');
+      // Navigate back to chat list (remove chat_id or group_id from URL)
+      const url = new URL(window.location);
+      url.searchParams.delete('chat_id');
+      url.searchParams.delete('group_id');
+      window.history.pushState({}, '', url);
+    }
+  }
+
+  // Initialize current chat IDs from existing chats
+  function initializeChatIds() {
+    const chatItems = document.querySelectorAll('.chat-item[data-chat-id]');
+    currentChatIds.clear();
+    chatItems.forEach(item => {
+      const chatId = item.getAttribute('data-chat-id');
+      if (chatId) {
+        currentChatIds.add(parseInt(chatId, 10));
+      }
+    });
+  }
+
+  // Function to update or create chat item
+  function updateChatList(chatsData) {
+    const chatList = document.getElementById('chatList');
+    if (!chatList) return;
+
+    const selectedChatId = new URLSearchParams(window.location.search).get('chat_id');
+    const newChatIds = new Set();
+
+    // Update or create chat items
+    chatsData.forEach(chat => {
+      const chatId = chat.id;
+      newChatIds.add(chatId);
+      
+      let chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
+      const isActive = selectedChatId && parseInt(selectedChatId, 10) === chatId;
+
+      if (!chatItem) {
+        // Create new chat item
+        chatItem = document.createElement('a');
+        chatItem.href = `?chat_id=${chatId}`;
+        chatItem.className = `chat-item${isActive ? ' active' : ''}`;
+        chatItem.setAttribute('data-chat-id', chatId);
+
+        const avatar = document.createElement('div');
+        avatar.className = 'chat-avatar';
+        if (chat.other_user.avatar && chat.other_user.avatar !== 'default') {
+          const avatarImg = document.createElement('img');
+          avatarImg.src = `/static/avatars/${chat.other_user.avatar}.png`;
+          avatarImg.alt = chat.other_user.username;
+          avatarImg.style.cssText = 'width: 48px; height: 48px; border-radius: 14px; object-fit: cover;';
+          avatar.appendChild(avatarImg);
+        } else {
+          const avatarCircle = document.createElement('div');
+          avatarCircle.className = 'avatar-circle';
+          avatarCircle.textContent = chat.other_user.username.charAt(0).toUpperCase();
+          avatar.appendChild(avatarCircle);
+        }
+
+        const content = document.createElement('div');
+        content.className = 'chat-content';
+        
+        const preview = document.createElement('div');
+        preview.className = 'chat-preview';
+        
+        const name = document.createElement('h5');
+        name.className = 'chat-name';
+        name.textContent = chat.other_user.username;
+        preview.appendChild(name);
+        
+        const message = document.createElement('p');
+        message.className = 'chat-message';
+        if (chat.last_message) {
+          message.textContent = chat.last_message.text.substring(0, 50) + (chat.last_message.text.length > 50 ? '...' : '');
+        } else {
+          message.className = 'chat-message text-muted';
+          message.textContent = 'No messages yet';
+        }
+        preview.appendChild(message);
+
+        content.appendChild(preview);
+        chatItem.appendChild(avatar);
+        chatItem.appendChild(content);
+
+        // Insert at the beginning (newest first)
+        if (chatList.children.length === 0 || chatList.querySelector('.text-muted')) {
+          chatList.innerHTML = '';
+        }
+        chatList.insertBefore(chatItem, chatList.firstChild);
+
+        // Add click handler for mobile
+        chatItem.addEventListener('click', function(e) {
+          if (window.innerWidth <= 768) {
+            e.preventDefault();
+            const url = new URL(window.location);
+            url.searchParams.set('chat_id', chatId);
+            window.location.href = url.href;
+          }
+        });
+      } else {
+        // Update existing chat item
+        const preview = chatItem.querySelector('.chat-preview .chat-message');
+        if (preview && chat.last_message) {
+          preview.textContent = chat.last_message.text.substring(0, 50) + (chat.last_message.text.length > 50 ? '...' : '');
+          preview.className = 'chat-message';
+        } else if (preview && !chat.last_message) {
+          preview.textContent = 'No messages yet';
+          preview.className = 'chat-message text-muted';
+        }
+
+        // Update active state
+        if (isActive) {
+          chatItem.classList.add('active');
+        } else {
+          chatItem.classList.remove('active');
+        }
+
+        // Reorder if needed - move to top if it's newer
+        const currentFirst = chatList.querySelector('.chat-item');
+        if (currentFirst && currentFirst !== chatItem) {
+          chatList.insertBefore(chatItem, currentFirst);
+        }
+      }
+    });
+
+    // Update active state for all chats
+    document.querySelectorAll('.chat-item').forEach(item => {
+      const itemChatId = item.getAttribute('data-chat-id');
+      if (selectedChatId && parseInt(selectedChatId, 10) === parseInt(itemChatId, 10)) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+
+    // Check if we need to add "No chats yet" message
+    if (chatList.children.length === 0) {
+      const noChatsMsg = document.createElement('p');
+      noChatsMsg.className = 'text-muted p-3';
+      noChatsMsg.textContent = 'No chats yet';
+      chatList.appendChild(noChatsMsg);
+    } else {
+      const noChatsMsg = chatList.querySelector('.text-muted');
+      if (noChatsMsg && noChatsMsg.textContent === 'No chats yet') {
+        noChatsMsg.remove();
+      }
+    }
+
+    currentChatIds = newChatIds;
+  }
+
+  // Poll for chat list updates
+  function startChatListPolling() {
+    if (chatListPollingInterval) {
+      clearInterval(chatListPollingInterval);
+    }
+
+    chatListPollingInterval = setInterval(async () => {
+      try {
+        const response = await fetch('/api/poll-chats/');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.chats && Array.isArray(data.chats)) {
+          updateChatList(data.chats);
+        }
+      } catch (err) {
+        console.error('Chat list polling error:', err);
+      }
+    }, 3000); // Poll every 3 seconds
+  }
+
+  // Stop chat list polling
+  function stopChatListPolling() {
+    if (chatListPollingInterval) {
+      clearInterval(chatListPollingInterval);
+      chatListPollingInterval = null;
+    }
+  }
+
+  // Toggle favorite function - define early
+  function toggleFavorite(chatId, groupId, heartElement) {
+    console.log('toggleFavorite called', chatId, groupId, heartElement);
+    
+    if (!heartElement) {
+      console.error('Heart element not found');
+      return;
+    }
+    
+    const formData = new FormData();
+    if (chatId) {
+      formData.append('chat_id', chatId);
+    }
+    if (groupId) {
+      formData.append('group_id', groupId);
+    }
+    
+    // Get CSRF token - try multiple methods
+    let csrfToken = getCookie('csrftoken');
+    if (!csrfToken) {
+      // Try to get it from any form on the page
+      const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+      if (csrfInput) {
+        csrfToken = csrfInput.value;
+      } else {
+        // Try to get from meta tag if exists
+        const metaToken = document.querySelector('meta[name=csrf-token]');
+        if (metaToken) {
+          csrfToken = metaToken.getAttribute('content');
+        }
+      }
+    }
+    
+    if (!csrfToken) {
+      console.error('CSRF token not found - cannot proceed');
+      alert('Error: CSRF token not found. Please refresh the page.');
+      return;
+    }
+    
+    formData.append('csrfmiddlewaretoken', csrfToken);
+
+    // Update UI immediately for better UX
+    const heartIcon = heartElement.querySelector('.heart-icon');
+    if (!heartIcon) {
+      console.error('Heart icon not found');
+      return;
+    }
+    
+    const isCurrentlyFavorited = heartIcon.classList.contains('favorited');
+    
+    // Optimistic update
+    if (!isCurrentlyFavorited) {
+      heartIcon.textContent = '❤️';
+      heartIcon.classList.add('favorited');
+      heartIcon.classList.remove('heart-glow');
+      void heartIcon.offsetWidth; // Force reflow
+      heartIcon.classList.add('heart-glow');
+      setTimeout(() => {
+        heartIcon.classList.remove('heart-glow');
+      }, 600);
+    } else {
+      heartIcon.textContent = '🤍';
+      heartIcon.classList.remove('favorited');
+      heartIcon.classList.remove('heart-glow');
+    }
+
+    fetch('/api/toggle-favorite/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': csrfToken
+      }
+    })
+    .then(response => {
+      console.log('Response status:', response.status);
+      return response.json().then(data => {
+        return { status: response.status, data: data };
+      });
+    })
+    .then(({ status, data }) => {
+      console.log('Response status:', status);
+      console.log('Response data:', data);
+      
+      if (status !== 200) {
+        console.error('HTTP Error - Status:', status);
+        console.error('Response data:', data);
+        // Revert optimistic update
+        if (isCurrentlyFavorited) {
+          heartIcon.textContent = '❤️';
+          heartIcon.classList.add('favorited');
+        } else {
+          heartIcon.textContent = '🤍';
+          heartIcon.classList.remove('favorited');
+        }
+        const errorMsg = data.error || `HTTP Error ${status}`;
+        if (errorMsg.includes('migrations')) {
+          alert('Please run migrations first: python manage.py migrate');
+        } else {
+          alert('Error: ' + errorMsg);
+        }
+        if (data.traceback) {
+          console.error('Traceback:', data.traceback);
+        }
+        return;
+      }
+      
+      if (data.error) {
+        console.error('Error in response:', data.error);
+        // Revert optimistic update
+        if (isCurrentlyFavorited) {
+          heartIcon.textContent = '❤️';
+          heartIcon.classList.add('favorited');
+        } else {
+          heartIcon.textContent = '🤍';
+          heartIcon.classList.remove('favorited');
+        }
+        alert('Error: ' + data.error);
+        if (data.traceback) {
+          console.error('Traceback:', data.traceback);
+        }
+        return;
+      }
+      
+      // Update based on server response
+      if (data.favorited === true) {
+        heartIcon.textContent = '❤️';
+        heartIcon.classList.add('favorited');
+        heartIcon.classList.remove('heart-glow');
+        void heartIcon.offsetWidth;
+        heartIcon.classList.add('heart-glow');
+        setTimeout(() => {
+          heartIcon.classList.remove('heart-glow');
+        }, 600);
+      } else if (data.favorited === false) {
+        heartIcon.textContent = '🤍';
+        heartIcon.classList.remove('favorited');
+        heartIcon.classList.remove('heart-glow');
+      }
+      
+      // Update the heart filter section without full page reload
+      // If we're on the heart filter, we need to refresh the list
+      const currentUrl = new URL(window.location);
+      const currentFilter = currentUrl.searchParams.get('filter');
+      if (currentFilter === 'heart') {
+        // Reload to update the heart filter section
+        setTimeout(() => {
+          window.location.reload();
+        }, 300);
+      }
+    })
+    .catch(error => {
+      console.error('Error toggling favorite:', error);
+      // Revert optimistic update on error
+      if (isCurrentlyFavorited) {
+        heartIcon.textContent = '❤️';
+        heartIcon.classList.add('favorited');
+      } else {
+        heartIcon.textContent = '🤍';
+        heartIcon.classList.remove('favorited');
+      }
+      alert('Error: ' + error.message);
+    });
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Handle chat item clicks - show chat window on mobile
   document.addEventListener('DOMContentLoaded', function() {
+    initializeChatIds();
+    startChatListPolling();
+    const chatItems = document.querySelectorAll('.chat-item');
+    chatItems.forEach(item => {
+      item.addEventListener('click', function(e) {
+        // On mobile, prevent default navigation and show chat window
+        if (window.innerWidth <= 768) {
+          e.preventDefault();
+          const chatId = new URL(this.href).searchParams.get('chat_id');
+          if (chatId) {
+            // Update URL without reload
+            const url = new URL(window.location);
+            url.searchParams.set('chat_id', chatId);
+            window.history.pushState({}, '', url);
+            // Show chat window and trigger page reload to load the chat
+            window.location.href = url.href;
+          }
+        }
+      });
+    });
+
     scrollToBottom();
     
     // Check if we have a selected chat
     {% if selected_chat %}
       initializeLastMessageId();
       startPolling({{ selected_chat.id }});
+      // On mobile, show chat window when a chat is selected
+      if (window.innerWidth <= 768) {
+        showChatWindow();
+      }
+    {% endif %}
+
+    {% if selected_group %}
+      // On mobile, show chat window when a group is selected
+      if (window.innerWidth <= 768) {
+        showChatWindow();
+      }
     {% endif %}
   });
 
@@ -326,5 +1075,13 @@ All Chats
       }
     }
   }, 1000);
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', function() {
+    stopPolling();
+    stopChatListPolling();
+  });
+
+  // Group info sidebar is always visible now (no toggle needed)
 </script>
 {% endblock body %}

@@ -1,15 +1,45 @@
 {%extends 'base.html'%}
+{% load static %}
 
 {% block title %} Featured Groups {% endblock title %}
 
+{% block extra_css %}
+<style>
+  .featured-groups-page {
+    min-height: calc(100vh - 70px);
+    margin-top: 70px;
+    padding: 40px 20px;
+  }
+
+  .back-link-featured {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #8b98a5;
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: color 0.2s ease;
+  }
+
+  .back-link-featured:hover {
+    color: #4fc3f7;
+  }
+</style>
+{% endblock extra_css %}
+
 {% block body %}
+<div class="featured-groups-page">
+  <a href="/all-chats" class="back-link-featured">
+    <span>←</span>
+    <span>Back to chats</span>
+  </a>
 
-<ul class="list-group list-group-flush">
-  <li class="list-group-item active" aria-current="true">INDIA🇮🇳</li>
-  <li class="list-group-item">Superpowered</li>
-  <li class="list-group-item">Antistress</li>
-  <li class="list-group-item">Newbies</li>
-  <li class="list-group-item">London</li>
-</ul>
-
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item active" aria-current="true">INDIA🇮🇳</li>
+    <li class="list-group-item">Superpowered</li>
+    <li class="list-group-item">Antistress</li>
+    <li class="list-group-item">Newbies</li>
+    <li class="list-group-item">London</li>
+  </ul>
+</div>
 {%endblock body%}

@@ -3,7 +3,7 @@
 :root {
   --navbar-bg: #0f1419;
   --navbar-hover: #1a1f2e;
-  --navbar-active: #4fc3f7;
+  --navbar-active: #8b7fb8;
   --navbar-text: #e1e8ed;
   --navbar-text-secondary: #8b98a5;
   --dropdown-bg: #1a1f2e;
@@ -55,6 +55,39 @@ html {
   gap: 10px;
   transition: transform 0.2s ease;
   text-decoration: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.navbar-brand.brand-logo * {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.navbar-brand.brand-logo img {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.navbar-brand.brand-logo .brand-text {
+  background: linear-gradient(135deg, #6d4c9e 0%, #5a3d7a 50%, #4a2d5f 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  text-shadow: 0 0 15px rgba(109, 76, 158, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 0 6px rgba(109, 76, 158, 0.3));
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .navbar-brand.brand-logo:hover {
@@ -63,15 +96,62 @@ html {
 }
 
 .brand-icon {
-  font-size: 1.8rem;
-  filter: drop-shadow(0 2px 4px rgba(79, 195, 247, 0.3));
+  height: 55px;
+  width: auto;
+  object-fit: contain;
+  filter: none !important;
+  display: block;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  vertical-align: middle;
+  line-height: 0;
+}
+
+.brand-logo img.brand-icon,
+.brand-logo .brand-icon,
+.brand-logo img,
+img.brand-icon {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  filter: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  display: block !important;
+  vertical-align: middle !important;
+  line-height: 0 !important;
+}
+
+
+.brand-logo img.brand-icon::before,
+.brand-logo img.brand-icon::after,
+.brand-logo .brand-icon::before,
+.brand-logo .brand-icon::after {
+  display: none !important;
+  content: none !important;
 }
 
 .brand-text {
-  background: linear-gradient(135deg, #4fc3f7 0%, #81d4fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background: linear-gradient(135deg, #6d4c9e 0%, #5a3d7a 50%, #4a2d5f 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: transparent !important;
+  text-shadow: 0 0 15px rgba(109, 76, 158, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 0 6px rgba(109, 76, 158, 0.3));
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 /* Add Button Dropdown */
@@ -98,7 +178,7 @@ html {
 }
 
 .add-btn:hover {
-  background: #81d4fa !important;
+  background: #8b7fb8 !important;
   transform: scale(1.1) rotate(90deg);
   box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
 }
@@ -163,9 +243,19 @@ html {
 }
 
 .nav-icon {
-  font-size: 1.1rem;
+  font-size: 2rem;
   filter: grayscale(0.3);
   transition: filter 0.2s ease;
+}
+
+.nav-avatar-icon {
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .nav-link:hover .nav-icon,
@@ -187,6 +277,19 @@ html {
 
 .profile-link {
   margin-right: 4px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.profile-link:hover {
+  background: transparent !important;
+  transform: none !important;
+}
+
+.profile-link.active {
+  background: transparent !important;
 }
 
 .settings-dropdown {
@@ -308,7 +411,7 @@ html {
   }
   
   .brand-icon {
-    font-size: 1.5rem;
+    height: 45px;
   }
   
   .nav-link {
@@ -316,7 +419,7 @@ html {
   }
   
   .nav-icon {
-    font-size: 1rem;
+    font-size: 1.8rem;
   }
 }
 
@@ -352,8 +455,12 @@ html {
 .nav-link:focus,
 .dropdown-item:focus,
 .navbar-brand:focus {
-  outline: 2px solid var(--navbar-active);
-  outline-offset: 2px;
+  outline: none !important;
+  outline-offset: 0;
+}
+
+.navbar-brand.brand-logo:focus {
+  outline: none !important;
 }
 
 /* Loading state (if needed) */
@@ -462,8 +569,8 @@ html {
 .search-result-avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--navbar-active) 0%, #81d4fa 100%);
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--navbar-active) 0%, #6b5b95 100%);
   color: var(--navbar-bg);
   display: flex;
   align-items: center;
@@ -504,7 +611,7 @@ html {
 }
 
 .search-result-chat-btn:hover {
-  background: #81d4fa;
+  background: #8b7fb8;
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
   color: var(--navbar-bg);
@@ -672,8 +779,8 @@ html {
 .search-result-avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--navbar-active) 0%, #81d4fa 100%);
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--navbar-active) 0%, #6b5b95 100%);
   color: var(--navbar-bg);
   display: flex;
   align-items: center;
@@ -714,7 +821,7 @@ html {
 }
 
 .search-result-chat-btn:hover {
-  background: #81d4fa;
+  background: #8b7fb8;
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
   color: var(--navbar-bg);

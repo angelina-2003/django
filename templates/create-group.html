@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Group{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock extra_css %}
+
+{% block body %}
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  .auth-page {
+    min-height: calc(100vh - 70px);
+    margin-top: 70px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px;
+  }
+</style>
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">👥</div>
+        <h1 class="auth-title">Create a Group</h1>
+        <p class="auth-subtitle">Start a new group conversation</p>
+      </div>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="name" class="form-label">Group Name</label>
+          <input
+            type="text"
+            class="form-input"
+            id="name"
+            name="name"
+            placeholder="Enter group name..."
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Description (Optional)</label>
+          <textarea
+            class="form-input"
+            id="description"
+            name="description"
+            placeholder="Describe what this group is about..."
+            rows="3"
+            style="resize: vertical; min-height: 80px;"
+          ></textarea>
+        </div>
+
+        <button class="auth-btn" type="submit">
+          Create Group
+        </button>
+
+        <div class="auth-link">
+          <a href="/all-chats">← Back to chats</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock body %}

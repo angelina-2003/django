@@ -20,7 +20,11 @@ Chat Room
     <div class="chat-user-info">
       {% if chat.user1 == request.user %}
         <div class="chat-avatar">
-          {{ chat.user2.username|first|upper }}
+          {% if chat.user2.profile.avatar and chat.user2.profile.avatar != "default" %}
+            <img src="{% static 'avatars/' %}{{ chat.user2.profile.avatar }}.png" alt="{{ chat.user2.username }}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover;">
+          {% else %}
+            {{ chat.user2.username|first|upper }}
+          {% endif %}
         </div>
         <div class="chat-user-details">
           <h3 class="chat-username">{{ chat.user2.username }}</h3>
@@ -28,7 +32,11 @@ Chat Room
         </div>
       {% else %}
         <div class="chat-avatar">
-          {{ chat.user1.username|first|upper }}
+          {% if chat.user1.profile.avatar and chat.user1.profile.avatar != "default" %}
+            <img src="{% static 'avatars/' %}{{ chat.user1.profile.avatar }}.png" alt="{{ chat.user1.username }}" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover;">
+          {% else %}
+            {{ chat.user1.username|first|upper }}
+          {% endif %}
         </div>
         <div class="chat-user-details">
           <h3 class="chat-username">{{ chat.user1.username }}</h3>
@@ -47,10 +55,29 @@ Chat Room
   <div class="messages-container" id="messagesContainer">
     {% for message in chat.messages.all %}
       <div class="message-wrapper {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
-        <div class="message-bubble">
-          <p class="message-text">{{ message.text }}</p>
-          <span class="message-time">{{ message.created_at|date:"H:i" }}</span>
-        </div>
+        {% if message.sender == request.user %}
+          <div class="message-bubble">
+            <p class="message-text">{{ message.text }}</p>
+          </div>
+          <div class="message-avatar-small">
+            {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
+              <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+            {% else %}
+              <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="message-avatar-small">
+            {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
+              <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+            {% else %}
+              <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
+            {% endif %}
+          </div>
+          <div class="message-bubble">
+            <p class="message-text">{{ message.text }}</p>
+          </div>
+        {% endif %}
       </div>
     {% empty %}
       <div class="no-messages">
@@ -154,13 +181,33 @@ Chat Room
     text.className = 'message-text';
     text.textContent = msg.text;
 
-    const time = document.createElement('span');
-    time.className = 'message-time';
-    time.textContent = msg.created_at;
-
     bubble.appendChild(text);
-    bubble.appendChild(time);
-    wrapper.appendChild(bubble);
+
+    // Create avatar element
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'message-avatar-small';
+    
+    if (msg.avatar && msg.avatar !== 'default') {
+      const avatarImg = document.createElement('img');
+      avatarImg.src = `/static/avatars/${msg.avatar}.png`;
+      avatarImg.alt = msg.sender || 'User';
+      avatarImg.style.cssText = 'width: 40px; height: 40px; border-radius: 8px; object-fit: cover;';
+      avatarDiv.appendChild(avatarImg);
+    } else {
+      const avatarCircle = document.createElement('div');
+      avatarCircle.className = 'avatar-circle small';
+      avatarCircle.textContent = (msg.sender || 'U').charAt(0).toUpperCase();
+      avatarDiv.appendChild(avatarCircle);
+    }
+
+    if (msg.is_me) {
+      wrapper.appendChild(bubble);
+      wrapper.appendChild(avatarDiv);
+    } else {
+      wrapper.appendChild(avatarDiv);
+      wrapper.appendChild(bubble);
+    }
+
     container.appendChild(wrapper);
 
     container.scrollTop = container.scrollHeight;

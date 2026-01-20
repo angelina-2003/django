@@ -1,101 +1,471 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}My Profile{% endblock title %}
+{% block title %}Edit Profile{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<style>
+  .profile-edit-page {
+    min-height: calc(100vh - 70px);
+    margin-top: 0;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: 20px 15px;
+    background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-edit-page::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(79, 195, 247, 0.1) 0%, transparent 70%);
+    animation: rotate 30s linear infinite;
+    z-index: 0;
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .profile-edit-page .auth-container {
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .auth-card {
+    max-width: 500px;
+    width: 100%;
+    background: rgba(26, 31, 46, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(79, 195, 247, 0.3);
+  }
+
+  .avatar-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #4fc3f7 0%, #81d4fa 100%);
+    box-shadow: 0 6px 24px rgba(79, 195, 247, 0.3);
+    border: 3px solid #2a3441;
+    overflow: hidden;
+  }
+
+  .avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-carousel-wrapper {
+    margin: 8px 0;
+    position: relative;
+  }
+
+  .avatar-carousel {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  #avatarCarousel .carousel-inner {
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+  }
+
+  #avatarCarousel .carousel-item {
+    text-align: center;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    min-height: 140px;
+    transition: none;
+    position: relative;
+    float: left;
+    width: 100%;
+    margin-right: -100%;
+    backface-visibility: hidden;
+  }
+
+  #avatarCarousel .carousel-item.active {
+    border: none;
+    box-shadow: none;
+  }
+
+  #avatarCarousel .carousel-item-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 140px;
+  }
+
+  .carousel-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid #4fc3f7;
+    box-shadow: 0 0 15px rgba(79, 195, 247, 0.5);
+    margin-bottom: 6px;
+    overflow: visible;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .carousel-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(79, 195, 247, 0.7);
+  }
+
+  .carousel-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .carousel-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    background: rgba(79, 195, 247, 0.1);
+  }
+
+  .carousel-avatar-name {
+    font-size: 0.8rem;
+    color: #e1e8ed;
+    font-weight: 600;
+    margin-top: 4px;
+    text-transform: capitalize;
+  }
+
+  .carousel-control-prev,
+  .carousel-control-next {
+    width: 40px;
+    height: 40px;
+    background: rgba(79, 195, 247, 0.2);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.8;
+    transition: all 0.2s ease;
+  }
+
+  .carousel-control-prev {
+    left: -25px;
+  }
+
+  .carousel-control-next {
+    right: -25px;
+  }
+
+  .carousel-control-prev:hover,
+  .carousel-control-next:hover {
+    opacity: 1;
+    background: rgba(79, 195, 247, 0.3);
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    filter: invert(1) brightness(0.8);
+    width: 20px;
+    height: 20px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #8b98a5;
+    text-decoration: none;
+    margin-bottom: 10px;
+    transition: color 0.2s ease;
+    font-size: 0.85rem;
+  }
+
+  .back-link:hover {
+    color: #4fc3f7;
+  }
+
+  .profile-edit-page .auth-card {
+    padding: 20px;
+    background: rgba(26, 31, 46, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(79, 195, 247, 0.3);
+  }
+
+  .profile-edit-page .auth-header {
+    margin-bottom: 8px;
+    padding: 0;
+  }
+
+  .profile-edit-page .auth-logo {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+    line-height: 1;
+  }
+
+  .profile-edit-page .auth-title {
+    font-size: 0.75rem;
+    margin-bottom: 0;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .profile-edit-page .auth-subtitle {
+    font-size: 0;
+    display: none;
+    margin: 0;
+    padding: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .profile-edit-page .form-group {
+    margin-bottom: 12px;
+  }
+
+  .profile-edit-page .auth-form {
+    margin-top: 0;
+  }
+
+  .profile-edit-page .form-label {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+
+  .profile-edit-page .form-input {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+
+  .profile-edit-page .auth-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+
+  .profile-edit-page .radio-group {
+    gap: 10px;
+  }
+
+  .profile-edit-page .radio-option label {
+    font-size: 0.85rem;
+    padding: 8px 16px;
+  }
+</style>
+{% endblock extra_css %}
 
 {% block body %}
+<div class="auth-page profile-edit-page">
+  <div class="auth-container">
+    <div class="auth-card">
 
-<div class="container my-4">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" style="background: rgba(79, 195, 247, 0.1); border: 1px solid #4fc3f7; color: #4fc3f7; padding: 8px 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.85rem;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
 
-    <h3 class="mb-4">My Profile</h3>
+      <a href="/profile" class="back-link">
+        <span>←</span>
+        <span>Back to Profile</span>
+      </a>
 
-    <form method="post" class="row g-4">
+      <form method="post" class="auth-form">
         {% csrf_token %}
 
-        <!-- Avatar placeholder -->
-        <div class="col-12">
-            <h5>Avatar</h5>
-            <!-- avatar selector goes here later -->
+        <!-- Avatar Selection -->
+        <div class="form-group">
+          <label class="form-label" style="text-align: center; display: block; margin-bottom: 8px; font-size: 0.85rem;">Avatar</label>
+          
+          <div class="avatar-carousel-wrapper">
+            <div id="avatarCarousel" class="carousel slide avatar-carousel">
+              <div class="carousel-inner">
+                <!-- Default avatar first -->
+                <div class="carousel-item {% if not profile.avatar or profile.avatar == 'default' %}active{% endif %}" data-avatar="default">
+                  <div class="carousel-item-content">
+                    <div class="carousel-avatar">
+                      <div class="carousel-avatar-placeholder">👤</div>
+                    </div>
+                    <div class="carousel-avatar-name">Default</div>
+                  </div>
+                </div>
+
+                <!-- Other avatars -->
+                {% for avatar_name in available_avatars %}
+                  <div class="carousel-item {% if profile.avatar == avatar_name %}active{% endif %}" data-avatar="{{ avatar_name }}">
+                    <div class="carousel-item-content">
+                      {% with avatar_file='avatars/'|add:avatar_name|add:'.png' %}
+                        <div class="carousel-avatar">
+                          <img src="{% static avatar_file %}" alt="{{ avatar_name }}">
+                        </div>
+                        <div class="carousel-avatar-name">{{ avatar_name|title }}</div>
+                      {% endwith %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <button class="carousel-control-prev" type="button" data-bs-target="#avatarCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#avatarCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+
+          <input type="hidden" name="avatar" id="avatarInput" value="{% if profile.avatar %}{{ profile.avatar }}{% else %}default{% endif %}">
         </div>
 
-        <!-- Basic info -->
-        <div class="col-md-6">
-            <label for="name" class="form-label">Name</label>
-            <input
-                type="text"
-                class="form-control"
-                id="name"
-                name="name"
-                placeholder="Enter your name"
-                required
-            >
+        <!-- Display Name -->
+        <div class="form-group">
+          <label for="display_name" class="form-label">Display Name</label>
+          <input
+            type="text"
+            class="form-input"
+            id="display_name"
+            name="display_name"
+            placeholder="What should people call you?"
+            value="{% if profile.display_name %}{{ profile.display_name }}{% endif %}"
+          >
         </div>
 
-        <div class="col-md-3">
-            <label for="ageRange" class="form-label">
-                Age: <span id="ageValue">18</span>
-            </label>
-            <input
-                type="range"
-                class="form-range"
-                id="ageRange"
-                name="age"
-                min="18"
-                max="60"
-                value="18"
-                oninput="document.getElementById('ageValue').innerText = this.value == 60 ? '60+' : this.value"
-            >
+        <!-- Age -->
+        <div class="form-group">
+          <label for="ageRange" class="form-label">
+            Age: <span class="range-value" id="ageValue">{% if profile.age %}{{ profile.age }}{% else %}18{% endif %}</span>
+          </label>
+          <input
+            type="range"
+            class="range-input"
+            id="ageRange"
+            name="age"
+            min="18"
+            max="60"
+            value="{% if profile.age %}{{ profile.age }}{% else %}18{% endif %}"
+            oninput="document.getElementById('ageValue').innerText = this.value == 60 ? '60+' : this.value"
+          >
         </div>
 
         <!-- Gender -->
-        <div class="col-12">
-            <label class="form-label d-block">Gender</label>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="gender" id="genderMale" value="male">
-                <label class="form-check-label" for="genderMale">Male</label>
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" name="gender" id="genderMale" value="male" {% if profile.gender == 'male' %}checked{% endif %}>
+              <label for="genderMale">Male</label>
             </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="female">
-                <label class="form-check-label" for="genderFemale">Female</label>
+            <div class="radio-option">
+              <input type="radio" name="gender" id="genderFemale" value="female" {% if profile.gender == 'female' %}checked{% endif %}>
+              <label for="genderFemale">Female</label>
             </div>
+          </div>
         </div>
 
-        <!-- Interest -->
-        <div class="col-12">
-            <label class="form-label d-block">Interested In</label>
-            <div class="btn-group" role="group">
-                <input type="radio" class="btn-check" name="interested_in" id="interestMale" value="male">
-                <label class="btn btn-outline-primary" for="interestMale">Male</label>
-
-                <input type="radio" class="btn-check" name="interested_in" id="interestFemale" value="female">
-                <label class="btn btn-outline-primary" for="interestFemale">Female</label>
-
-                <input type="radio" class="btn-check" name="interested_in" id="interestBoth" value="both">
-                <label class="btn btn-outline-primary" for="interestBoth">Both</label>
+        <!-- Preference -->
+        <div class="form-group">
+          <label class="form-label">Interested In</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" name="preference" id="interestMale" value="male" {% if profile.preference == 'male' %}checked{% endif %}>
+              <label for="interestMale">Male</label>
             </div>
+            <div class="radio-option">
+              <input type="radio" name="preference" id="interestFemale" value="female" {% if profile.preference == 'female' %}checked{% endif %}>
+              <label for="interestFemale">Female</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="preference" id="interestBoth" value="both" {% if profile.preference == 'both' %}checked{% endif %}>
+              <label for="interestBoth">Both</label>
+            </div>
+          </div>
         </div>
 
-        <!-- Primary action -->
-        <div class="col-12 d-grid col-md-4 mx-auto mt-3">
-            <button class="btn btn-primary btn-lg" type="submit">
-                Save Profile
-            </button>
-        </div>
-
-    </form>
-
-    <!-- Secondary settings -->
-    <hr class="my-5">
-
-    <h5 class="mb-3">Settings</h5>
-
-    <div class="d-grid gap-2 col-md-4">
-         <button class="btn btn-outline-secondary" type="button">My Super Powers</button>
-        <button class="btn btn-outline-secondary" type="button">Message Colour</button>
-        <button class="btn btn-outline-secondary" type="button">Privacy and Security</button>
-        <button class="btn btn-outline-secondary" type="button">Languages</button>
-        <button class="btn btn-outline-secondary" type="button">Content Settings</button>
+        <button class="auth-btn" type="submit">
+          Save Changes
+        </button>
+      </form>
     </div>
-
+  </div>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const avatarCarousel = document.getElementById('avatarCarousel');
+    if (!avatarCarousel) return;
+
+    // Initialize Bootstrap carousel without auto-play
+    const carouselInstance = new bootstrap.Carousel(avatarCarousel, {
+      interval: false, // Disable auto-sliding
+      wrap: true // Allow wrapping around
+    });
+
+    // Find initial active item and set hidden input
+    const initialActiveItem = avatarCarousel.querySelector('.carousel-item.active');
+    if (initialActiveItem) {
+      const initialAvatar = initialActiveItem.dataset.avatar;
+      document.getElementById('avatarInput').value = initialAvatar || 'default';
+    }
+
+    // Update hidden input when carousel slides (via arrows or programmatically)
+    avatarCarousel.addEventListener('slid.bs.carousel', function (event) {
+      const activeItem = event.target.querySelector('.carousel-item.active');
+      if (activeItem) {
+        const avatarName = activeItem.dataset.avatar;
+        if (avatarName) {
+          document.getElementById('avatarInput').value = avatarName;
+        }
+      }
+    });
+
+    // Make avatars clickable to select them
+    const avatarItems = avatarCarousel.querySelectorAll('.carousel-item');
+    avatarItems.forEach((item, index) => {
+      const avatarElement = item.querySelector('.carousel-avatar');
+      if (avatarElement) {
+        avatarElement.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Move carousel to this item
+          carouselInstance.to(index);
+        });
+      }
+    });
+
+    // Force reflow to ensure Bootstrap carousel positioning is applied
+    setTimeout(function() {
+      carouselInstance._update();
+    }, 100);
+  });
+</script>
 {% endblock body %}

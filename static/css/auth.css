@@ -1,0 +1,438 @@
+/* Auth Pages Styles - Register, Login, Setup Profile */
+
+:root {
+  --auth-bg: #0f1419;
+  --auth-card-bg: #1a1f2e;
+  --auth-border: #2a3441;
+  --auth-text: #e1e8ed;
+  --auth-text-secondary: #8b98a5;
+  --auth-primary: #8b7fb8;
+  --auth-primary-hover: #6b5b95;
+  --auth-input-bg: #252b3a;
+  --auth-input-focus: rgba(79, 195, 247, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body.auth-page {
+  background: var(--auth-bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: var(--auth-text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background */
+body.auth-page::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(79, 195, 247, 0.1) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+  z-index: 0;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 450px;
+  animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-card {
+  background: var(--auth-card-bg);
+  border: 1px solid var(--auth-border);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  max-height: 90vh;
+}
+
+.setup-profile-form {
+  max-width: 550px;
+  padding: 25px !important;
+}
+
+.setup-profile-form .form-group {
+  margin-bottom: 18px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.auth-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--auth-text);
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  font-size: 0.95rem;
+  color: var(--auth-text-secondary);
+}
+
+/* Form Styles */
+.auth-form {
+  margin-top: 32px;
+  overflow: visible;
+  position: relative;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--auth-text);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--auth-input-bg);
+  border: 1px solid var(--auth-border);
+  border-radius: 12px;
+  color: var(--auth-text);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.form-input::placeholder {
+  color: var(--auth-text-secondary);
+}
+
+.form-input:focus {
+  border-color: var(--auth-primary);
+  box-shadow: 0 0 0 3px var(--auth-input-focus);
+  background: #2a3441;
+}
+
+.form-floating {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.form-floating .form-input {
+  padding-top: 24px;
+  padding-bottom: 8px;
+}
+
+.form-floating label {
+  position: absolute;
+  top: 0;
+  left: 18px;
+  height: 100%;
+  padding: 16px 0;
+  pointer-events: none;
+  border: 1px solid transparent;
+  transform-origin: 0 0;
+  transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
+  color: var(--auth-text-secondary);
+  font-size: 0.9rem;
+}
+
+.form-floating .form-input:focus ~ label,
+.form-floating .form-input:not(:placeholder-shown) ~ label {
+  opacity: 0.65;
+  transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+  padding-top: 8px;
+}
+
+/* Checkbox Styles */
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.form-check-input {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  cursor: pointer;
+  accent-color: var(--auth-primary);
+}
+
+.form-check-label {
+  font-size: 0.9rem;
+  color: var(--auth-text-secondary);
+  cursor: pointer;
+}
+
+/* Button Styles */
+.auth-btn {
+  width: 100%;
+  padding: 14px 24px;
+  background: var(--auth-primary);
+  color: var(--auth-bg);
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.auth-btn:hover {
+  background: var(--auth-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(79, 195, 247, 0.3);
+}
+
+.auth-btn:active {
+  transform: translateY(0);
+}
+
+/* Link Styles */
+.auth-link {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 0.95rem;
+  color: var(--auth-text-secondary);
+}
+
+.auth-link a {
+  color: var(--auth-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.auth-link a:hover {
+  color: var(--auth-primary-hover);
+  text-decoration: underline;
+}
+
+/* Alert Styles */
+.alert {
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+  border: 1px solid;
+}
+
+.alert-danger {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.3);
+  color: #ff5252;
+}
+
+.alert-success {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+}
+
+/* Radio Button Groups */
+.radio-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.radio-option {
+  flex: 1;
+  min-width: 100px;
+}
+
+.radio-option input[type="radio"] {
+  display: none;
+}
+
+.radio-option label {
+  display: block;
+  padding: 12px 20px;
+  background: var(--auth-input-bg);
+  border: 1px solid var(--auth-border);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  color: var(--auth-text-secondary);
+}
+
+.radio-option input[type="radio"]:checked + label {
+  background: var(--auth-primary);
+  border-color: var(--auth-primary);
+  color: var(--auth-bg);
+  font-weight: 600;
+}
+
+.radio-option label:hover {
+  border-color: var(--auth-primary);
+  color: var(--auth-text);
+}
+
+/* Range Input (Age Slider) */
+.range-group {
+  margin-top: 8px;
+}
+
+.range-input {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--auth-input-bg);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--auth-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(79, 195, 247, 0.4);
+  transition: all 0.2s ease;
+}
+
+.range-input::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.6);
+}
+
+.range-input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--auth-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(79, 195, 247, 0.4);
+  transition: all 0.2s ease;
+}
+
+.range-input::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.6);
+}
+
+.range-value {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--auth-primary);
+  font-weight: 600;
+}
+
+/* Setup Profile Specific */
+.setup-profile-form {
+  max-width: 550px;
+  padding: 25px !important;
+}
+
+.setup-profile-form .form-group {
+  margin-bottom: 18px;
+}
+
+.setup-profile-form .form-group {
+  margin-bottom: 32px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 32px 24px;
+    border-radius: 16px;
+  }
+
+  .auth-btn {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 0.95rem;
+  }
+
+  .auth-form {
+    margin-top: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .auth-card {
+    padding: 24px 20px;
+  }
+
+  .auth-title {
+    font-size: 1.5rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .radio-group {
+    flex-direction: column;
+  }
+
+  .radio-option {
+    width: 100%;
+  }
+
+  .auth-btn {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+}

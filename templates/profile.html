@@ -1,0 +1,415 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock title %}
+
+{% block extra_css %}
+<style>
+  .profile-page {
+    min-height: calc(100vh - 70px);
+    padding: 20px 15px;
+    background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-page::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(79, 195, 247, 0.1) 0%, transparent 70%);
+    animation: rotate 30s linear infinite;
+    z-index: 0;
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .profile-container {
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .profile-card {
+    background: rgba(26, 31, 46, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(79, 195, 247, 0.3);
+  }
+
+  .profile-header {
+    position: relative;
+    text-align: center;
+    margin-bottom: 12px;
+    padding-top: 15px;
+  }
+
+  .edit-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: transparent;
+    border: 2px solid #4fc3f7;
+    color: #4fc3f7;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+  }
+
+  .edit-button:hover {
+    background: rgba(79, 195, 247, 0.2);
+    border-color: #4fc3f7;
+    transform: translateY(-2px);
+  }
+
+  .back-button-profile:hover {
+    background: rgba(79, 195, 247, 0.1);
+    color: #4fc3f7;
+  }
+
+  .avatar-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 15px auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #4fc3f7;
+    box-shadow: 0 0 15px rgba(79, 195, 247, 0.5);
+    overflow: hidden;
+    background: rgba(79, 195, 247, 0.1);
+  }
+
+  .avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-placeholder {
+    font-size: 3rem;
+  }
+
+  .profile-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 6px 0;
+  }
+
+  .profile-username {
+    font-size: 0.85rem;
+    color: #8b98a5;
+    margin: 0 0 16px 0;
+  }
+
+  .profile-info-row {
+    display: flex;
+    justify-content: space-around;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 14px 0;
+    border-top: 1px solid rgba(79, 195, 247, 0.2);
+    border-bottom: 1px solid rgba(79, 195, 247, 0.2);
+  }
+
+  .info-item {
+    text-align: center;
+    flex: 1;
+  }
+
+  .info-label {
+    font-size: 0.65rem;
+    color: #8b98a5;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .info-value {
+    font-size: 0.95rem;
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .gifts-section {
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 0.85rem;
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .gifts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .gift-item {
+    position: relative;
+    aspect-ratio: 1;
+    border: 2px solid rgba(79, 195, 247, 0.5);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(79, 195, 247, 0.1);
+    box-shadow: 0 0 15px rgba(79, 195, 247, 0.3);
+    font-size: 2rem;
+    overflow: hidden;
+    padding: 8px;
+  }
+
+  .gift-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .gift-count {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: #4fc3f7;
+    color: #0f1419;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 700;
+  }
+
+  .personal-link-section {
+    margin-top: 16px;
+  }
+
+  .link-input-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .link-input {
+    flex: 1;
+    background: rgba(79, 195, 247, 0.1);
+    border: 1px solid rgba(79, 195, 247, 0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-size: 0.75rem;
+    outline: none;
+  }
+
+  .link-input:focus {
+    border-color: #4fc3f7;
+    box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+  }
+
+  .copy-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(79, 195, 247, 0.2);
+    border: 2px solid #4fc3f7;
+    color: #4fc3f7;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .copy-button:hover {
+    background: rgba(79, 195, 247, 0.3);
+    transform: scale(1.05);
+  }
+
+  .link-hint {
+    font-size: 0.85rem;
+    color: #8b98a5;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 768px) {
+    .profile-card {
+      padding: 24px;
+    }
+
+    .avatar-circle {
+      width: 120px;
+      height: 120px;
+    }
+
+    .profile-name {
+      font-size: 1.5rem;
+    }
+
+    .profile-info-row {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .gifts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+{% endblock extra_css %}
+
+{% block body %}
+<div class="profile-page">
+  <div class="profile-container">
+    <div class="profile-card">
+      <div class="profile-header">
+        <a href="/all-chats" class="back-button-profile" style="position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 6px; color: #8b98a5; text-decoration: none; padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease; font-size: 0.85rem; margin-bottom: 0;">
+          <span>←</span>
+          <span>Back</span>
+        </a>
+        <a href="/edit-profile" class="edit-button">
+          <span>✏️</span>
+          <span>Edit</span>
+        </a>
+
+        <div class="avatar-circle">
+          {% if profile.avatar and profile.avatar != "default" %}
+            {% with avatar_file='avatars/'|add:profile.avatar|add:'.png' %}
+              <img src="{% static avatar_file %}" alt="{{ profile.avatar }}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'avatar-placeholder\'>👤</div>';">
+            {% endwith %}
+          {% else %}
+            <div class="avatar-placeholder">👤</div>
+          {% endif %}
+        </div>
+
+        <h1 class="profile-name">
+          {% if profile.display_name %}
+            {{ profile.display_name }}
+          {% else %}
+            {{ user.username }}
+          {% endif %}
+        </h1>
+        <p class="profile-username">@{{ user.username }}</p>
+      </div>
+
+      <div class="profile-info-row">
+        <div class="info-item">
+          <div class="info-label">Gender</div>
+          <div class="info-value">
+            {% if profile.gender %}
+              {{ profile.get_gender_display }}
+            {% else %}
+              -
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-label">Age</div>
+          <div class="info-value">
+            {% if profile.age %}
+              {{ profile.age }}
+            {% else %}
+              -
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-label">Hush Points</div>
+          <div class="info-value">{{ profile.hush_points }}</div>
+        </div>
+      </div>
+
+      <div class="gifts-section">
+        <h2 class="section-title">Gifts Received</h2>
+        <div class="gifts-grid">
+          <div class="gift-item">
+            <img src="{% static 'gifts/letter.png' %}" alt="Love Letter" style="width: 100%; height: 100%; object-fit: contain;">
+            <span class="gift-count">{{ gift_counts.love_letter|default:0 }}</span>
+          </div>
+          <div class="gift-item">
+            <img src="{% static 'gifts/clove.png' %}" alt="Clove" style="width: 100%; height: 100%; object-fit: contain;">
+            <span class="gift-count">{{ gift_counts.clove|default:0 }}</span>
+          </div>
+          <div class="gift-item">
+            <img src="{% static 'gifts/goldenheart.png' %}" alt="Golden Heart" style="width: 100%; height: 100%; object-fit: contain;">
+            <span class="gift-count">{{ gift_counts.golden_heart|default:0 }}</span>
+          </div>
+          <div class="gift-item">
+            <img src="{% static 'gifts/pearl.png' %}" alt="Pearl" style="width: 100%; height: 100%; object-fit: contain;">
+            <span class="gift-count">{{ gift_counts.pearl|default:0 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="personal-link-section">
+        <h2 class="section-title">Your Personal Link</h2>
+        <div class="link-input-group">
+          <input 
+            type="text" 
+            class="link-input" 
+            id="personalLink" 
+            value="http://127.0.0.1:8000/profile/{{ user.username }}" 
+            readonly
+          >
+          <button class="copy-button" onclick="copyLink()" title="Copy link">
+            <span>👋</span>
+          </button>
+        </div>
+        <p class="link-hint">Share this link to let others find your profile</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function copyLink() {
+    const linkInput = document.getElementById('personalLink');
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+      document.execCommand('copy');
+      // Visual feedback
+      const button = event.target.closest('.copy-button');
+      const originalContent = button.innerHTML;
+      button.innerHTML = '<span>✓</span>';
+      button.style.color = '#4ade80';
+      
+      setTimeout(() => {
+        button.innerHTML = originalContent;
+        button.style.color = '';
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  }
+</script>
+{% endblock body %}
