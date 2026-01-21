@@ -1,17 +1,17 @@
 /* Base Styles for Hush Hours */
 
 :root {
-  --navbar-bg: #0f0a1a;
-  --navbar-hover: #1a1526;
-  --navbar-active: #8b7fb8;
-  --navbar-text: #e9d5ff;
-  --navbar-text-secondary: #b8a9e8;
-  --dropdown-bg: #1a1526;
-  --dropdown-hover: #252035;
-  --dropdown-border: #3a2f4a;
-  --body-bg: #0f0a1a;
-  --card-bg: #0a0515;
-  --card-glow: rgba(139, 127, 184, 0.3);
+  --navbar-bg: #0a0a1a;
+  --navbar-hover: #0f0f1f;
+  --navbar-active: #4a3a6f;
+  --navbar-text: #e1e8ed;
+  --navbar-text-secondary: #8b98a5;
+  --dropdown-bg: #0f0f1f;
+  --dropdown-hover: #1a1a2e;
+  --dropdown-border: #2a2a3f;
+  --body-bg: #0a0a1a;
+  --card-bg: #0d0d17;
+  --card-glow: rgba(74, 58, 111, 0.3);
 }
 
 * {
@@ -36,7 +36,7 @@ html {
 
 /* Custom Navbar */
 .custom-navbar {
-  background: linear-gradient(135deg, #0f0a1a 0%, #1a1526 100%) !important;
+  background: linear-gradient(135deg, #0a0a1a 0%, #0f0f1f 100%) !important;
   border-bottom: 1px solid var(--dropdown-border);
   padding: 6px 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -67,14 +67,39 @@ html {
 .brand-icon {
   height: 32px;
   width: auto;
-  filter: drop-shadow(0 2px 4px rgba(139, 127, 184, 0.3));
+  filter: drop-shadow(0 2px 4px rgba(74, 58, 111, 0.3));
 }
 
 .brand-text {
-  background: linear-gradient(135deg, #8b7fb8 0%, #9b8fc8 100%);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #7a6a9f 0%, #8a7aaf 50%, #9a8abf 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  position: relative;
+  text-transform: none;
+  font-style: normal;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.brand-text::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(122, 106, 159, 0.6), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.navbar-brand.brand-logo:hover .brand-text::after {
+  opacity: 1;
 }
 
 /* Add Button Dropdown */
@@ -87,9 +112,9 @@ html {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--navbar-active) !important;
-  border: none !important;
-  color: var(--navbar-bg) !important;
+  background: linear-gradient(135deg, #7a6a9f 0%, #8a7aaf 100%) !important;
+  border: 2px solid rgba(122, 106, 159, 0.5) !important;
+  color: #e1e8ed !important;
   font-size: 1.2rem;
   font-weight: 300;
   display: flex;
@@ -98,16 +123,17 @@ html {
   padding: 0;
   transition: all 0.2s ease;
   cursor: pointer;
+  box-shadow: 0 4px 16px rgba(122, 106, 159, 0.5);
 }
 
 .add-btn:hover {
-  background: #9b8fc8 !important;
+  background: #5a4a7f !important;
   transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 4px 12px rgba(139, 127, 184, 0.4);
+  box-shadow: 0 4px 12px rgba(74, 58, 111, 0.4);
 }
 
 .add-btn:focus {
-  box-shadow: 0 0 0 0.2rem rgba(139, 127, 184, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(74, 58, 111, 0.25);
 }
 
 .add-icon {
@@ -139,17 +165,20 @@ html {
   gap: 6px;
   position: relative;
   text-decoration: none;
+  border: 1px solid transparent;
 }
 
 .nav-link:hover {
-  color: var(--navbar-text) !important;
-  background: var(--navbar-hover);
+  color: #8a7aaf !important;
+  background: linear-gradient(135deg, rgba(122, 106, 159, 0.2) 0%, rgba(138, 122, 175, 0.15) 100%);
+  border-color: rgba(122, 106, 159, 0.3);
   transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(122, 106, 159, 0.3);
 }
 
 .nav-link.active {
   color: var(--navbar-active) !important;
-  background: rgba(139, 127, 184, 0.1);
+  background: rgba(74, 58, 111, 0.1);
   font-weight: 600;
 }
 
@@ -248,9 +277,10 @@ html {
 }
 
 .dropdown-item:hover {
-  background: var(--dropdown-hover) !important;
-  color: var(--navbar-active) !important;
+  background: linear-gradient(135deg, rgba(122, 106, 159, 0.2) 0%, rgba(138, 122, 175, 0.15) 100%) !important;
+  color: #8a7aaf !important;
   transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(122, 106, 159, 0.3);
 }
 
 .dropdown-item:active {
@@ -277,7 +307,7 @@ html {
 }
 
 .navbar-toggler:focus {
-  box-shadow: 0 0 0 0.2rem rgba(139, 127, 184, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(74, 58, 111, 0.25);
 }
 
 .navbar-toggler-icon {
@@ -307,13 +337,19 @@ html {
   }
   
   .brand-text {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    letter-spacing: 0.8px;
   }
 }
 
 @media (max-width: 576px) {
   .brand-logo {
     font-size: 1.1rem;
+  }
+  
+  .brand-text {
+    font-size: 1rem;
+    letter-spacing: 0.6px;
   }
   
   .brand-icon {
@@ -390,7 +426,7 @@ html {
 
 .search-user-input-wrapper:focus-within {
   border-color: var(--navbar-active);
-  box-shadow: 0 0 0 3px rgba(139, 127, 184, 0.1);
+  box-shadow: 0 0 0 3px rgba(74, 58, 111, 0.1);
 }
 
 .search-user-icon {
@@ -472,7 +508,7 @@ html {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--navbar-active) 0%, #9b8fc8 100%);
+  background: linear-gradient(135deg, var(--navbar-active) 0%, #5a4a7f 100%);
   color: var(--navbar-bg);
   display: flex;
   align-items: center;
@@ -480,7 +516,7 @@ html {
   font-weight: 700;
   font-size: 1.1rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(139, 127, 184, 0.3);
+  box-shadow: 0 2px 8px rgba(74, 58, 111, 0.3);
 }
 
 .search-result-info {
@@ -513,9 +549,9 @@ html {
 }
 
 .search-result-chat-btn:hover {
-  background: #9b8fc8;
+  background: #5a4a7f;
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(139, 127, 184, 0.4);
+  box-shadow: 0 4px 12px rgba(74, 58, 111, 0.4);
   color: var(--navbar-bg);
   text-decoration: none;
 }
@@ -600,7 +636,7 @@ html {
 
 .search-user-input-wrapper:focus-within {
   border-color: var(--navbar-active);
-  box-shadow: 0 0 0 3px rgba(139, 127, 184, 0.1);
+  box-shadow: 0 0 0 3px rgba(74, 58, 111, 0.1);
 }
 
 .search-user-icon {
@@ -682,7 +718,7 @@ html {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--navbar-active) 0%, #9b8fc8 100%);
+  background: linear-gradient(135deg, var(--navbar-active) 0%, #5a4a7f 100%);
   color: var(--navbar-bg);
   display: flex;
   align-items: center;
@@ -690,7 +726,7 @@ html {
   font-weight: 700;
   font-size: 1.1rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(139, 127, 184, 0.3);
+  box-shadow: 0 2px 8px rgba(74, 58, 111, 0.3);
 }
 
 .search-result-info {
@@ -723,9 +759,9 @@ html {
 }
 
 .search-result-chat-btn:hover {
-  background: #9b8fc8;
+  background: #5a4a7f;
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(139, 127, 184, 0.4);
+  box-shadow: 0 4px 12px rgba(74, 58, 111, 0.4);
   color: var(--navbar-bg);
   text-decoration: none;
 }

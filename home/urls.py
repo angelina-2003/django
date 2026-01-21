@@ -25,5 +25,12 @@ urlpatterns = [
     path("join-group/<int:group_id>/", views.join_group, name="join-group"),
     path("leave-group/<int:group_id>/", views.leave_group, name="leave-group"),
     path("api/toggle-favorite/", views.toggle_favorite, name="toggle-favorite"),
+    path("api/user-profile/<int:user_id>/", views.get_user_profile, name="get-user-profile"),
+    path("api/update-group-description/<int:group_id>/", views.update_group_description, name="update-group-description"),
+    path("api/update-group-name/<int:group_id>/", views.update_group_name, name="update-group-name"),
+    path("api/update-group-icon/<int:group_id>/", views.update_group_icon, name="update-group-icon"),
+    path("api/update-message-color/", views.update_message_color, name="update-message-color"),
+    path("api/delete-chat/<int:chat_id>/", views.delete_chat, name="delete-chat"),
+    path("api/delete-group-chat/<int:group_id>/", views.delete_group_chat, name="delete-group-chat"),
 
 ]

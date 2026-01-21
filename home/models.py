@@ -40,6 +40,9 @@ class Profile(models.Model):
     clove_count = models.PositiveIntegerField(default=0)
     golden_heart_count = models.PositiveIntegerField(default=0)
     pearl_count = models.PositiveIntegerField(default=0)
+    
+    # Message color (hex code, default to purple-blue theme)
+    message_color = models.CharField(max_length=7, default="#4a3a6f", blank=True)
 
     def __str__(self):
         return f"{self.user.username} Profile"
@@ -60,6 +63,7 @@ class PrivateChat(models.Model):
 class Group(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    icon = models.CharField(max_length=10, default="👥", blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="created_groups")
     created_at = models.DateTimeField(auto_now_add=True)
     members = models.ManyToManyField(User, through='GroupMember', related_name='group_memberships')

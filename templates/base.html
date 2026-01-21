@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}{% endblock title %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Playfair+Display:wght@700;800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% block extra_css %}{% endblock extra_css %}
@@ -93,6 +96,12 @@
                   <a class="dropdown-item" href="/clear-cache" id="clear-cache-link">
                     <span class="dropdown-icon">🗑️</span>
                     <span>Clear cache</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#" id="change-message-color-link" onclick="event.preventDefault(); openColorPickerModal();">
+                    <span class="dropdown-icon">🎨</span>
+                    <span>Change Message Colour</span>
                   </a>
                 </li>
                 <li>
@@ -558,6 +567,277 @@
         });
       }
     </script>
+
+  <!-- Color Picker Modal -->
+  <div class="modal fade" id="colorPickerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-light" style="background: rgba(26, 31, 46, 0.95) !important; border: 2px solid rgba(122, 106, 159, 0.3); border-radius: 16px; backdrop-filter: blur(20px);">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(122, 106, 159, 0.2);">
+          <h5 class="modal-title" style="color: #e1e8ed; font-weight: 600;">Choose Your Message Colour</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="padding: 24px;">
+          <p style="color: #8b98a5; margin-bottom: 20px; font-size: 14px;">Select a colour for your messages. This will be visible to everyone in both private and group chats.</p>
+          <div class="color-picker-grid" id="colorPickerGrid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px;">
+            <!-- Colors will be populated by JavaScript -->
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(122, 106, 159, 0.2);">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: transparent; border: 2px solid rgba(122, 106, 159, 0.3); color: #8b98a5; padding: 8px 20px; border-radius: 8px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveColorBtn" onclick="saveMessageColor()" style="background: linear-gradient(135deg, #7a6a9f 0%, #8a7aaf 100%); border: none; color: #e1e8ed; padding: 8px 20px; border-radius: 8px; font-weight: 600;">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedColor = null;
+    const currentUserColor = '{{ user.profile.message_color|default:"#4a3a6f" }}';
+
+    // Color options - vibrant, shiny colors
+    const colorOptions = [
+      { name: 'Vibrant Purple', value: '#8b5cf6' },
+      { name: 'Bright Blue', value: '#3b82f6' },
+      { name: 'Electric Cyan', value: '#06b6d4' },
+      { name: 'Emerald Green', value: '#10b981' },
+      { name: 'Lime', value: '#84cc16' },
+      { name: 'Yellow', value: '#eab308' },
+      { name: 'Orange', value: '#f97316' },
+      { name: 'Red', value: '#ef4444' },
+      { name: 'Pink', value: '#ec4899' },
+      { name: 'Rose', value: '#f43f5e' },
+      { name: 'Violet', value: '#a855f7' },
+      { name: 'Indigo', value: '#6366f1' },
+      { name: 'Teal', value: '#14b8a6' },
+      { name: 'Sky Blue', value: '#0ea5e9' },
+      { name: 'Lavender', value: '#a78bfa' },
+      { name: 'Coral', value: '#fb7185' },
+      { name: 'Baby Pink', value: '#eac2f0' },
+      { name: 'Hot Pink', value: '#f72585' },
+      { name: 'Bright Green', value: '#22c55e' },
+      { name: 'Turquoise', value: '#00d9ff' },
+      { name: 'Royal Blue', value: '#2563eb' },
+      { name: 'Deep Purple', value: '#7c3aed' },
+      { name: 'Amber', value: '#f59e0b' },
+      { name: 'Cherry Red', value: '#dc2626' },
+      { name: 'Mint Green', value: '#34d399' },
+      { name: 'Ocean Blue', value: '#0284c7' },
+      { name: 'Fuchsia', value: '#d946ef' },
+      { name: 'Light Grey', value: '#9ca3af' },
+      { name: 'Medium Grey', value: '#6b7280' },
+      { name: 'Dark Grey', value: '#4b5563' },
+      { name: 'Charcoal', value: '#374151' },
+    ];
+
+    function openColorPickerModal() {
+      const modal = new bootstrap.Modal(document.getElementById('colorPickerModal'));
+      const grid = document.getElementById('colorPickerGrid');
+      grid.innerHTML = '';
+      
+      // Reset selected color to current user color
+      selectedColor = currentUserColor;
+
+      colorOptions.forEach(color => {
+        const colorBtn = document.createElement('div');
+        colorBtn.className = 'color-option';
+        colorBtn.style.cssText = `
+          width: 100%;
+          aspect-ratio: 1;
+          background: ${color.value};
+          border-radius: 12px;
+          cursor: pointer;
+          border: 3px solid ${color.value === currentUserColor ? '#7a6a9f' : 'transparent'};
+          transition: all 0.2s ease;
+          position: relative;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        `;
+        
+        if (color.value === currentUserColor) {
+          colorBtn.innerHTML = '<span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 20px;">✓</span>';
+        }
+
+        colorBtn.onclick = function() {
+          // Remove checkmark from all
+          document.querySelectorAll('.color-option').forEach(btn => {
+            btn.style.border = '3px solid transparent';
+            btn.innerHTML = '';
+          });
+          
+          // Add checkmark to selected
+          colorBtn.style.border = '3px solid #7a6a9f';
+          colorBtn.innerHTML = '<span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 20px; text-shadow: 0 0 8px rgba(0,0,0,0.8);">✓</span>';
+          selectedColor = color.value;
+        };
+
+        colorBtn.onmouseenter = function() {
+          if (colorBtn.style.border !== '3px solid #7a6a9f') {
+            colorBtn.style.transform = 'scale(1.1)';
+            colorBtn.style.boxShadow = '0 6px 20px rgba(122, 106, 159, 0.6)';
+          }
+        };
+
+        colorBtn.onmouseleave = function() {
+          if (colorBtn.style.border !== '3px solid #7a6a9f') {
+            colorBtn.style.transform = 'scale(1)';
+            colorBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+          }
+        };
+
+        grid.appendChild(colorBtn);
+      });
+
+      modal.show();
+    }
+
+    function saveMessageColor() {
+      if (!selectedColor) {
+        selectedColor = currentUserColor;
+      }
+
+      fetch('/api/update-message-color/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ color: selectedColor })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Close modal
+          const modal = bootstrap.Modal.getInstance(document.getElementById('colorPickerModal'));
+          modal.hide();
+          
+          // Reload page to apply changes
+          window.location.reload();
+        } else {
+          alert('Error updating message colour: ' + (data.error || 'Unknown error'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating message colour. Please try again.');
+      });
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
+
+  <!-- Delete Chat Confirmation Modal -->
+  <div class="modal fade" id="deleteChatModal" tabindex="-1" aria-labelledby="deleteChatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content delete-modal-content">
+        <div class="modal-header delete-modal-header">
+          <h5 class="modal-title" id="deleteChatModalLabel">🗑️ Delete Chat</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body delete-modal-body">
+          <p class="delete-warning-text">Are you sure you want to delete this chat?</p>
+          <p class="delete-warning-subtext">This will permanently delete all messages and cannot be undone.</p>
+        </div>
+        <div class="modal-footer delete-modal-footer">
+          <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-delete-confirm" id="confirmDeleteBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .delete-modal-content {
+      background: linear-gradient(135deg, rgba(20, 15, 35, 0.98) 0%, rgba(25, 20, 40, 0.98) 100%);
+      border: 2px solid rgba(74, 58, 111, 0.5);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 60px rgba(74, 58, 111, 0.4);
+      backdrop-filter: blur(20px);
+      color: #e1e8ed;
+    }
+
+    .delete-modal-header {
+      border-bottom: 2px solid rgba(74, 58, 111, 0.3);
+      padding: 20px 24px;
+    }
+
+    .delete-modal-header .modal-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #e1e8ed;
+      text-shadow: 0 0 10px rgba(74, 58, 111, 0.5);
+    }
+
+    .delete-modal-body {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .delete-warning-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #e1e8ed;
+      margin-bottom: 12px;
+    }
+
+    .delete-warning-subtext {
+      font-size: 14px;
+      color: #8b98a5;
+      margin-bottom: 0;
+    }
+
+    .delete-modal-footer {
+      border-top: 2px solid rgba(74, 58, 111, 0.3);
+      padding: 16px 24px;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .btn-cancel {
+      background: linear-gradient(135deg, rgba(40, 35, 55, 0.8) 0%, rgba(45, 40, 60, 0.8) 100%);
+      border: 2px solid rgba(74, 58, 111, 0.4);
+      color: #e1e8ed;
+      padding: 10px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+      background: linear-gradient(135deg, rgba(50, 45, 65, 0.9) 0%, rgba(55, 50, 70, 0.9) 100%);
+      border-color: rgba(74, 58, 111, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(74, 58, 111, 0.3);
+    }
+
+    .btn-delete-confirm {
+      background: linear-gradient(135deg, rgba(220, 53, 69, 0.9) 0%, rgba(200, 35, 51, 0.9) 100%);
+      border: 2px solid rgba(220, 53, 69, 0.5);
+      color: #ffffff;
+      padding: 10px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-delete-confirm:hover {
+      background: linear-gradient(135deg, rgba(240, 63, 79, 1) 0%, rgba(220, 45, 61, 1) 100%);
+      border-color: rgba(220, 53, 69, 0.7);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(220, 53, 69, 0.4);
+    }
+  </style>
 
   </body>
 </html>

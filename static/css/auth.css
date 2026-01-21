@@ -1,15 +1,15 @@
 /* Auth Pages Styles - Register, Login, Setup Profile */
 
 :root {
-  --auth-bg: #0f0a1a;
-  --auth-card-bg: #1a1526;
-  --auth-border: #3a2f4a;
-  --auth-text: #e9d5ff;
-  --auth-text-secondary: #b8a9e8;
-  --auth-primary: #8b7fb8;
-  --auth-primary-hover: #9b8fc8;
-  --auth-input-bg: #1a1526;
-  --auth-input-focus: rgba(139, 127, 184, 0.15);
+  --auth-bg: #0a0a1a;
+  --auth-card-bg: #0f0f1f;
+  --auth-border: #2a2a3f;
+  --auth-text: #e1e8ed;
+  --auth-text-secondary: #8b98a5;
+  --auth-primary: #4a3a6f;
+  --auth-primary-hover: #5a4a7f;
+  --auth-input-bg: #0f0f1f;
+  --auth-input-focus: rgba(74, 58, 111, 0.15);
 }
 
 * {
@@ -39,7 +39,7 @@ body.auth-page::before {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(139, 127, 184, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(74, 58, 111, 0.1) 0%, transparent 70%);
   animation: rotate 20s linear infinite;
   z-index: 0;
 }
@@ -73,11 +73,11 @@ body.auth-page::before {
 }
 
 .auth-card {
-  background: rgba(10, 5, 21, 0.9);
-  border: 1px solid rgba(139, 127, 184, 0.3);
+  background: rgba(15, 15, 25, 0.9);
+  border: 1px solid rgba(74, 58, 111, 0.3);
   border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 0 40px rgba(139, 127, 184, 0.2), 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(139, 127, 184, 0.05);
+  box-shadow: 0 0 40px rgba(74, 58, 111, 0.2), 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(74, 58, 111, 0.05);
   backdrop-filter: blur(15px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -102,6 +102,16 @@ body.auth-page::before {
 .auth-logo {
   font-size: 2.5rem;
   margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-logo img {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(90, 70, 127, 0.4));
 }
 
 .auth-title {
@@ -154,7 +164,7 @@ body.auth-page::before {
 .form-input:focus {
   border-color: var(--auth-primary);
   box-shadow: 0 0 0 3px var(--auth-input-focus);
-  background: #1a1526;
+  background: #0f0f1f;
 }
 
 .form-floating {
@@ -163,29 +173,27 @@ body.auth-page::before {
 }
 
 .form-floating .form-input {
-  padding-top: 24px;
-  padding-bottom: 8px;
+  padding: 14px 18px;
 }
 
 .form-floating label {
   position: absolute;
-  top: 0;
+  top: 50%;
   left: 18px;
-  height: 100%;
-  padding: 16px 0;
+  transform: translateY(-50%);
   pointer-events: none;
   border: 1px solid transparent;
-  transform-origin: 0 0;
-  transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
   color: var(--auth-text-secondary);
-  font-size: 0.9rem;
+  font-size: 1rem;
+  opacity: 1;
 }
 
 .form-floating .form-input:focus ~ label,
-.form-floating .form-input:not(:placeholder-shown) ~ label {
-  opacity: 0.65;
-  transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
-  padding-top: 8px;
+.form-floating .form-input:not(:placeholder-shown) ~ label,
+.form-floating .form-input:valid ~ label {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Checkbox Styles */
@@ -230,7 +238,7 @@ body.auth-page::before {
 .auth-btn:hover {
   background: var(--auth-primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(139, 127, 184, 0.3);
+  box-shadow: 0 8px 20px rgba(74, 58, 111, 0.3);
 }
 
 .auth-btn:active {
@@ -342,13 +350,13 @@ body.auth-page::before {
   border-radius: 50%;
   background: var(--auth-primary);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(139, 127, 184, 0.4);
+  box-shadow: 0 2px 8px rgba(74, 58, 111, 0.4);
   transition: all 0.2s ease;
 }
 
 .range-input::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(139, 127, 184, 0.6);
+  box-shadow: 0 4px 12px rgba(74, 58, 111, 0.6);
 }
 
 .range-input::-moz-range-thumb {
@@ -358,13 +366,13 @@ body.auth-page::before {
   background: var(--auth-primary);
   cursor: pointer;
   border: none;
-  box-shadow: 0 2px 8px rgba(139, 127, 184, 0.4);
+  box-shadow: 0 2px 8px rgba(74, 58, 111, 0.4);
   transition: all 0.2s ease;
 }
 
 .range-input::-moz-range-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(139, 127, 184, 0.6);
+  box-shadow: 0 4px 12px rgba(74, 58, 111, 0.6);
 }
 
 .range-value {

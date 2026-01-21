@@ -90,8 +90,23 @@ All Chats
             </div>
           </div>
           
-          <div class="chat-heart" data-chat-id="{{ chat.id }}" data-chat-type="private" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite({{ chat.id }}, null, this);" style="pointer-events: auto;">
-            <span class="heart-icon {% if chat.id in favorite_chat_ids %}favorited{% endif %}">{% if chat.id in favorite_chat_ids %}❤️{% else %}🤍{% endif %}</span>
+          <div class="chat-actions">
+            <div class="chat-menu" data-chat-id="{{ chat.id }}" data-chat-type="private" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleChatMenu(this, {{ chat.id }}, null, 'private', event); return false;" style="pointer-events: auto; cursor: pointer; z-index: 1000;">
+              <span class="menu-dots">⋯</span>
+              <div class="chat-menu-dropdown" data-chat-id="{{ chat.id }}" style="display: none;">
+                <div class="menu-item" onclick="event.stopPropagation(); deleteChat({{ chat.id }}, null, 'private');">
+                  <span class="menu-icon">🗑️</span>
+                  <span>Delete Chat</span>
+                </div>
+                <div class="menu-item" onclick="event.stopPropagation(); blockUser({% if chat.user1 == request.user %}{{ chat.user2.id }}{% else %}{{ chat.user1.id }}{% endif %});">
+                  <span class="menu-icon">🚫</span>
+                  <span>Block User</span>
+                </div>
+              </div>
+            </div>
+            <div class="chat-heart" data-chat-id="{{ chat.id }}" data-chat-type="private" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite({{ chat.id }}, null, this);" style="pointer-events: auto;">
+              <span class="heart-icon {% if chat.id in favorite_chat_ids %}favorited{% endif %}">{% if chat.id in favorite_chat_ids %}❤️{% else %}🤍{% endif %}</span>
+            </div>
           </div>
         </a>
         {% endfor %}
@@ -100,7 +115,7 @@ All Chats
         {% for group in groups %}
         <a href="?group_id={{ group.id }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="chat-item {% if selected_group and selected_group.id == group.id %}active{% endif %}" data-group-id="{{ group.id }}" data-chat-type="group">
           <div class="chat-avatar">
-            <div class="avatar-circle group-avatar" style="font-size: 32px;">👥</div>
+            <div class="avatar-circle group-avatar" style="font-size: 32px;">{{ group.icon|default:"👥" }}</div>
           </div>
 
           <div class="chat-content">
@@ -116,8 +131,23 @@ All Chats
             </div>
           </div>
           
-          <div class="chat-heart" data-group-id="{{ group.id }}" data-chat-type="group" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(null, {{ group.id }}, this);" style="pointer-events: auto;">
-            <span class="heart-icon {% if group.id in favorite_group_ids %}favorited{% endif %}">{% if group.id in favorite_group_ids %}❤️{% else %}🤍{% endif %}</span>
+          <div class="chat-actions">
+            <div class="chat-menu" data-group-id="{{ group.id }}" data-chat-type="group" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleChatMenu(this, null, {{ group.id }}, 'group', event); return false;" style="pointer-events: auto; cursor: pointer; z-index: 1000;">
+              <span class="menu-dots">⋯</span>
+              <div class="chat-menu-dropdown" data-group-id="{{ group.id }}" style="display: none;">
+                <div class="menu-item" onclick="event.stopPropagation(); deleteChat(null, {{ group.id }}, 'group');">
+                  <span class="menu-icon">🗑️</span>
+                  <span>Delete Chat</span>
+                </div>
+                <div class="menu-item" onclick="event.stopPropagation(); blockGroup({{ group.id }});">
+                  <span class="menu-icon">🚫</span>
+                  <span>Block Group</span>
+                </div>
+              </div>
+            </div>
+            <div class="chat-heart" data-group-id="{{ group.id }}" data-chat-type="group" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(null, {{ group.id }}, this);" style="pointer-events: auto;">
+              <span class="heart-icon {% if group.id in favorite_group_ids %}favorited{% endif %}">{% if group.id in favorite_group_ids %}❤️{% else %}🤍{% endif %}</span>
+            </div>
           </div>
         </a>
         {% endfor %}
@@ -165,25 +195,25 @@ All Chats
           {% for message in selected_chat.messages.all %}
             <div class="message-wrapper {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
               {% if message.sender == request.user %}
-                <div class="message-bubble">
+                <div class="message-bubble" style="background: {{ message.sender.profile.message_color|default:'#4a3a6f' }}; border: none;">
                   <p class="message-text">{{ message.text }}</p>
                 </div>
-                <div class="message-avatar-small">
+                <div class="message-avatar-small" data-user-id="{{ message.sender.id }}" data-username="{{ message.sender.username }}" style="cursor: pointer;" onclick="showUserProfileFromMessage({{ message.sender.id }}, '{{ message.sender.username }}')">
                   {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
-                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;">
+                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover; pointer-events: none;">
                   {% else %}
                     <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
                   {% endif %}
                 </div>
               {% else %}
-                <div class="message-avatar-small">
+                <div class="message-avatar-small" data-user-id="{{ message.sender.id }}" data-username="{{ message.sender.username }}" style="cursor: pointer;" onclick="showUserProfileFromMessage({{ message.sender.id }}, '{{ message.sender.username }}')">
                   {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
-                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;">
+                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover; pointer-events: none;">
                   {% else %}
                     <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
                   {% endif %}
                 </div>
-                <div class="message-bubble">
+                <div class="message-bubble" style="background: {{ message.sender.profile.message_color|default:'rgba(26, 31, 46, 0.95)' }}; border: 1px solid {{ message.sender.profile.message_color|default:'rgba(74, 58, 111, 0.2)' }};">
                   <p class="message-text">{{ message.text }}</p>
                 </div>
               {% endif %}
@@ -226,9 +256,9 @@ All Chats
             </svg>
           </button>
           <div class="chat-user-info">
-            <div class="chat-avatar group-avatar-header">👥</div>
+            <div class="chat-avatar group-avatar-header" style="font-size: 32px; line-height: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;">{{ selected_group.icon|default:"👥" }}</div>
             <div class="chat-user-details">
-              <h3 class="chat-username">{{ selected_group.name }}</h3>
+              <h3 class="chat-username" id="groupNameInHeader" style="font-size: 1.1rem !important; cursor: pointer;" onclick="showGroupInfo()">{{ selected_group.name }}</h3>
               <span class="chat-status">{{ selected_group.members.count }} members</span>
             </div>
           </div>
@@ -242,26 +272,25 @@ All Chats
           {% for message in selected_group.messages.all %}
             <div class="message-wrapper {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
               {% if message.sender == request.user %}
-                <div class="message-bubble">
+                <div class="message-bubble" style="background: {{ message.sender.profile.message_color|default:'#4a3a6f' }}; border: none;">
                   <p class="message-text">{{ message.text }}</p>
                 </div>
-                <div class="message-avatar-small">
+                <div class="message-avatar-small" data-user-id="{{ message.sender.id }}" data-username="{{ message.sender.username }}" style="cursor: pointer;" onclick="showUserProfileFromMessage({{ message.sender.id }}, '{{ message.sender.username }}')">
                   {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
-                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;">
+                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover; pointer-events: none;">
                   {% else %}
                     <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
                   {% endif %}
                 </div>
               {% else %}
-                <div class="message-avatar-small">
+                <div class="message-avatar-small" data-user-id="{{ message.sender.id }}" data-username="{{ message.sender.username }}" style="cursor: pointer;" onclick="showUserProfileFromMessage({{ message.sender.id }}, '{{ message.sender.username }}')">
                   {% if message.sender.profile.avatar and message.sender.profile.avatar != "default" %}
-                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover;">
+                    <img src="{% static 'avatars/' %}{{ message.sender.profile.avatar }}.png" alt="{{ message.sender.username }}" style="width: 52px; height: 52px; border-radius: 8px; object-fit: cover; pointer-events: none;">
                   {% else %}
                     <div class="avatar-circle small">{{ message.sender.username|first|upper }}</div>
                   {% endif %}
                 </div>
-                <div class="message-bubble">
-                  <div class="message-sender-name" style="font-size: 0.75rem; color: #8b98a5; margin-bottom: 4px;">{{ message.sender.username }}</div>
+                <div class="message-bubble" style="background: {{ message.sender.profile.message_color|default:'rgba(26, 31, 46, 0.95)' }}; border: 1px solid {{ message.sender.profile.message_color|default:'rgba(74, 58, 111, 0.2)' }};">
                   <p class="message-text">{{ message.text }}</p>
                 </div>
               {% endif %}
@@ -408,21 +437,64 @@ All Chats
     {% if selected_group %}
     <div class="group-info-sidebar active" id="groupInfoSidebar">
       <div class="group-info-header">
-        <h4>Group Info</h4>
+        <h4 id="groupInfoHeader">Group Info</h4>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          {% if is_group_creator %}
+            <span id="editGroupIcon" style="color: #8b98a5; font-size: 1.1rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all 0.2s ease;" onclick="toggleGroupEditMode()" title="Edit group">✏️</span>
+          {% endif %}
+          <button class="back-to-group-btn" id="backToGroupBtn" style="display: none; background: transparent; border: none; color: #7a6a9f; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all 0.2s ease;" onclick="showGroupInfo()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            Back
+          </button>
+        </div>
       </div>
       
-      <div class="group-info-content">
+      <div class="group-info-content" id="groupInfoContent">
         <div class="group-name-section">
-          <div class="group-avatar-large">👥</div>
-          <h3>{{ selected_group.name }}</h3>
-          {% if selected_group.description %}
-            <p class="group-description">{{ selected_group.description }}</p>
+          <div class="group-avatar-large" id="groupIconDisplay" style="font-size: 64px !important; text-align: center; margin-bottom: 12px; line-height: 1; display: flex; align-items: center; justify-content: center; overflow: hidden;">{{ selected_group.icon|default:"👥" }}</div>
+          {% if is_group_creator %}
+            <div id="groupIconEdit" style="display: none !important; margin-bottom: 12px;">
+              <input type="text" id="groupIconInput" value="{{ selected_group.icon|default:"👥" }}" placeholder="Choose an emoji" maxlength="2" inputmode="text" style="width: 100%; padding: 8px 12px; border-radius: 8px; background: rgba(26, 31, 46, 0.6); border: 2px solid rgba(122, 106, 159, 0.3); color: #e1e8ed; font-size: 24px; text-align: center; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;">
+              <p style="color: #8b98a5; font-size: 0.75rem; text-align: center; margin-top: 4px;">Enter a single emoji (e.g., 🎉 🚀 💬 ⭐)</p>
+            </div>
+            <div id="groupNameDisplay">
+              <h3 id="groupNameHeader" style="font-size: 1.2rem !important; color: #e1e8ed; margin: 0 0 8px 0;">{{ selected_group.name }}</h3>
+            </div>
+            <div id="groupNameEdit" style="display: none !important;">
+              <input type="text" id="groupNameInput" value="{{ selected_group.name }}" style="width: 100%; padding: 8px 12px; border-radius: 8px; background: rgba(26, 31, 46, 0.6); border: 2px solid rgba(122, 106, 159, 0.3); color: #e1e8ed; font-size: 16px; font-weight: 600; font-family: inherit;">
+            </div>
+          {% else %}
+            <h3 id="groupNameHeaderNonCreator" style="font-size: 1.2rem !important; color: #e1e8ed; margin: 0 0 8px 0; cursor: pointer;" onclick="showGroupInfo()">{{ selected_group.name }}</h3>
+          {% endif %}
+          {% if is_group_creator %}
+            <div id="groupDescriptionDisplay" style="margin-top: 12px;">
+              {% if selected_group.description %}
+                <p class="group-description" id="groupDescriptionText" style="color: #e0e0e0;">{{ selected_group.description }}</p>
+              {% else %}
+                <p class="group-description" id="groupDescriptionText" style="color: #8b98a5; font-style: italic;">Click to add a description...</p>
+              {% endif %}
+            </div>
+            <div id="groupDescriptionEdit" class="group-description-edit" style="display: none !important; margin-top: 12px;">
+              <textarea id="groupDescriptionInput" class="group-description-input" placeholder="Add a description..." style="width: 100%; min-height: 60px; padding: 10px; border-radius: 8px; background: rgba(26, 31, 46, 0.6); border: 2px solid rgba(122, 106, 159, 0.3); color: #e1e8ed; font-size: 14px; resize: vertical; font-family: inherit;">{{ selected_group.description|default:"" }}</textarea>
+            </div>
+            <div id="groupEditActions" style="display: none; margin-top: 12px;">
+              <div style="display: flex; gap: 8px;">
+                <button onclick="saveAllGroupEdits()" class="save-description-btn" style="padding: 8px 16px; background: linear-gradient(135deg, #7a6a9f 0%, #8a7aaf 100%); color: #e1e8ed; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">Save</button>
+                <button onclick="cancelAllGroupEdits()" class="cancel-description-btn" style="padding: 8px 16px; background: transparent; color: #8b98a5; border: 2px solid rgba(122, 106, 159, 0.3); border-radius: 8px; cursor: pointer; font-size: 14px;">Cancel</button>
+              </div>
+            </div>
+          {% else %}
+            {% if selected_group.description %}
+              <p class="group-description">{{ selected_group.description }}</p>
+            {% endif %}
           {% endif %}
         </div>
 
         <div class="group-members-section">
           <h5 class="section-title">Creator</h5>
-          <div class="member-item creator-item">
+          <div class="member-item creator-item" data-user-id="{{ selected_group.creator.id }}" data-username="{{ selected_group.creator.username }}" style="cursor: pointer; pointer-events: auto; position: relative; z-index: 10;">
               {% if selected_group.creator.profile.avatar and selected_group.creator.profile.avatar != "default" %}
               <img src="{% static 'avatars/' %}{{ selected_group.creator.profile.avatar }}.png" alt="{{ selected_group.creator.username }}" class="member-avatar" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
             {% else %}
@@ -439,7 +511,7 @@ All Chats
           <div class="members-list">
             {% for member in selected_group.members.all %}
               {% if member != selected_group.creator %}
-                <div class="member-item">
+                <div class="member-item" data-user-id="{{ member.id }}" data-username="{{ member.username }}" style="cursor: pointer; pointer-events: auto; position: relative; z-index: 10;">
                   {% if member.profile.avatar and member.profile.avatar != "default" %}
                     <img src="{% static 'avatars/' %}{{ member.profile.avatar }}.png" alt="{{ member.username }}" class="member-avatar" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;">
                   {% else %}
@@ -454,6 +526,64 @@ All Chats
             {% empty %}
               <p class="text-muted">No other members</p>
             {% endfor %}
+          </div>
+        </div>
+        
+        <!-- User Profile View (hidden by default) - uses same structure as private chat profile -->
+        <div id="userProfileView" class="private-chat-info-content" style="display: none;">
+          <div class="profile-avatar-section">
+            <div id="profileAvatarContainer"></div>
+            <h3 id="profileDisplayName"></h3>
+            <p class="profile-username" id="profileUsername"></p>
+          </div>
+
+          <div class="profile-details-section">
+            <div class="profile-detail-item">
+              <span class="detail-label">Username</span>
+              <span class="detail-value" id="profileUsernameValue"></span>
+            </div>
+
+            <div class="profile-detail-item" id="profileDisplayNameItem" style="display: none;">
+              <span class="detail-label">Display Name</span>
+              <span class="detail-value" id="profileDisplayNameValue"></span>
+            </div>
+
+            <div class="profile-detail-item">
+              <span class="detail-label">Age</span>
+              <span class="detail-value" id="profileAgeValue"></span>
+            </div>
+
+            <div class="profile-detail-item">
+              <span class="detail-label">Gender</span>
+              <span class="detail-value" id="profileGenderValue"></span>
+            </div>
+
+            <div class="profile-detail-item">
+              <span class="detail-label">Hush Points</span>
+              <span class="detail-value" id="profileHushPointsValue"></span>
+            </div>
+          </div>
+
+          <div class="gifts-section">
+            <h5 class="section-title" style="margin-top: 24px; margin-bottom: 16px;">Gifts Received</h5>
+            <div class="gifts-grid">
+              <div class="gift-item">
+                <img src="{% static 'gifts/letter.png' %}" alt="Love Letter" style="width: 100%; height: 100%; object-fit: contain;">
+                <span class="gift-count" id="giftLoveLetter">0</span>
+              </div>
+              <div class="gift-item">
+                <img src="{% static 'gifts/clove.png' %}" alt="Clove" style="width: 100%; height: 100%; object-fit: contain;">
+                <span class="gift-count" id="giftClove">0</span>
+              </div>
+              <div class="gift-item">
+                <img src="{% static 'gifts/goldenheart.png' %}" alt="Golden Heart" style="width: 100%; height: 100%; object-fit: contain;">
+                <span class="gift-count" id="giftGoldenHeart">0</span>
+              </div>
+              <div class="gift-item">
+                <img src="{% static 'gifts/pearl.png' %}" alt="Pearl" style="width: 100%; height: 100%; object-fit: contain;">
+                <span class="gift-count" id="giftPearl">0</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -477,6 +607,357 @@ All Chats
   let currentChatId = null;
   let chatListPollingInterval = null;
   let currentChatIds = new Set();
+
+  // Function to clean up duplicate or incorrectly positioned group name elements
+  function cleanupDuplicateGroupNames() {
+    // Get the current group name from the correct elements
+    const correctNameHeader = document.getElementById('groupNameHeader');
+    const correctNameHeaderNonCreator = document.getElementById('groupNameHeaderNonCreator');
+    const correctNameInHeader = document.getElementById('groupNameInHeader');
+    
+    const currentGroupName = (correctNameHeader?.textContent || 
+                              correctNameHeaderNonCreator?.textContent || 
+                              correctNameInHeader?.textContent || '').trim();
+    
+    // Find all h3 elements and remove any that are duplicates or incorrectly positioned
+    const allH3Elements = document.querySelectorAll('h3');
+    allH3Elements.forEach(el => {
+      const isCorrectElement = el.id === 'groupNameHeader' || 
+                              el.id === 'groupNameHeaderNonCreator' || 
+                              el.id === 'groupNameInHeader';
+      
+      // If it's not a correct element, check if it should be removed
+      if (!isCorrectElement) {
+        const fontSize = window.getComputedStyle(el).fontSize;
+        const fontSizeNum = parseFloat(fontSize);
+        const text = el.textContent ? el.textContent.trim() : '';
+        
+        // Check if it's in group info or chat list area
+        const inGroupInfo = el.closest('#groupInfoContent') || el.closest('.group-info-sidebar') || el.closest('.group-name-section');
+        const inChatList = el.closest('.chat-list') || el.closest('.chat-item');
+        const inChatHeader = el.closest('.chat-header');
+        
+        // If it has very large font size (likely duplicate), remove it
+        if (fontSizeNum > 24 && (inGroupInfo || inChatList || inChatHeader)) {
+          // Make sure it's not a section title or other legitimate h3
+          if (!el.classList.contains('section-title') && 
+              !el.classList.contains('chat-username') &&
+              text.length > 0 && text.length < 100) {
+            console.log('Removing duplicate h3 with text:', text, 'fontSize:', fontSizeNum);
+            el.remove();
+          }
+        }
+      }
+    });
+    
+    // Also check for any elements with very large text that might be group names
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(el => {
+      if (el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE' && 
+          el.id !== 'groupIconDisplay' && 
+          el.id !== 'groupNameHeader' && 
+          el.id !== 'groupNameHeaderNonCreator' && 
+          el.id !== 'groupNameInHeader' &&
+          !el.classList.contains('group-avatar') &&
+          !el.classList.contains('group-avatar-large') &&
+          !el.classList.contains('group-avatar-header')) {
+        const fontSize = window.getComputedStyle(el).fontSize;
+        const fontSizeNum = parseFloat(fontSize);
+        const text = el.textContent ? el.textContent.trim() : '';
+        
+        // If font size is very large and it's in a problematic area, remove it
+        // But make sure it's not an emoji (emojis are single characters or short)
+        if (fontSizeNum > 30 && text.length > 3 && text.length < 50) {
+          // Check if it's actually text (not an emoji)
+          const isLikelyText = /^[A-Za-z0-9\s]+$/.test(text);
+          if (isLikelyText) {
+            const inGroupInfo = el.closest('#groupInfoContent') || el.closest('.group-info-sidebar') || el.closest('.group-name-section');
+            const inChatList = el.closest('.chat-list') || el.closest('.chat-item');
+            const inChatHeader = el.closest('.chat-header');
+            
+            if (inGroupInfo || inChatList || inChatHeader) {
+              console.log('Removing large text element:', text, 'fontSize:', fontSizeNum);
+              el.remove();
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Attach click handlers to all existing menu elements
+  function attachMenuHandlers() {
+    document.querySelectorAll('.chat-menu').forEach(menuElement => {
+      const chatId = menuElement.getAttribute('data-chat-id');
+      const groupId = menuElement.getAttribute('data-group-id');
+      const chatType = menuElement.getAttribute('data-chat-type') || 'private';
+      
+      // Always set onclick handler (even if it exists, replace it to ensure it works)
+      menuElement.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        toggleChatMenu(menuElement, chatId || null, groupId || null, chatType, e);
+        return false;
+      };
+      
+      // Add mouseleave handler to close menu when cursor leaves
+      const dropdown = menuElement.querySelector('.chat-menu-dropdown');
+      if (dropdown) {
+        let closeTimeout = null;
+        
+        const cancelClose = function() {
+          if (closeTimeout) {
+            clearTimeout(closeTimeout);
+            closeTimeout = null;
+          }
+        };
+        
+        const scheduleClose = function() {
+          cancelClose();
+          closeTimeout = setTimeout(function() {
+            if (dropdown.style.display !== 'none') {
+              dropdown.style.display = 'none';
+            }
+          }, 300); // 300ms delay before closing
+        };
+        
+        // Close when mouse leaves the menu element
+        menuElement.addEventListener('mouseleave', function(e) {
+          const relatedTarget = e.relatedTarget;
+          // Only close if not moving to dropdown
+          if (!relatedTarget || (!menuElement.contains(relatedTarget) && !dropdown.contains(relatedTarget))) {
+            scheduleClose();
+          }
+        });
+        
+        // Cancel close when mouse enters menu
+        menuElement.addEventListener('mouseenter', cancelClose);
+        
+        // Close when mouse leaves the dropdown
+        dropdown.addEventListener('mouseleave', function(e) {
+          const relatedTarget = e.relatedTarget;
+          // Only close if not moving to menu element
+          if (!relatedTarget || (!menuElement.contains(relatedTarget) && !dropdown.contains(relatedTarget))) {
+            scheduleClose();
+          }
+        });
+        
+        // Cancel close when mouse enters dropdown
+        dropdown.addEventListener('mouseenter', cancelClose);
+      }
+    });
+  }
+
+  // Run cleanup on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    cleanupDuplicateGroupNames();
+    // Also run after a short delay to catch any dynamically loaded content
+    setTimeout(cleanupDuplicateGroupNames, 500);
+    
+    // Attach handlers to all existing menus
+    attachMenuHandlers();
+    
+    // Re-attach handlers after delays to catch any late-rendered elements
+    setTimeout(attachMenuHandlers, 100);
+    setTimeout(attachMenuHandlers, 500);
+    setTimeout(attachMenuHandlers, 1000);
+    setTimeout(attachMenuHandlers, 2000);
+    
+    // Use event delegation for chat menu clicks - use capture phase to catch before link navigation
+    document.addEventListener('click', function(e) {
+      // Check if click is on menu dots, menu container, or any child of menu
+      const menuElement = e.target.closest('.chat-menu');
+      if (menuElement) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        // Get IDs directly from menu element data attributes (more reliable)
+        let chatId = menuElement.getAttribute('data-chat-id');
+        let groupId = menuElement.getAttribute('data-group-id');
+        let chatType = menuElement.getAttribute('data-chat-type') || 'private';
+        
+        // Fallback: try to get from parent chat-item if not found on menu
+        if (!chatId && !groupId) {
+          const chatItem = menuElement.closest('.chat-item');
+          if (chatItem) {
+            chatId = chatItem.getAttribute('data-chat-id');
+            groupId = chatItem.getAttribute('data-group-id');
+            chatType = chatItem.getAttribute('data-chat-type') || 'private';
+          }
+        }
+        
+        toggleChatMenu(menuElement, chatId || null, groupId || null, chatType, e);
+        return false;
+      }
+      
+      // Close chat menus when clicking outside
+      if (!e.target.closest('.chat-menu') && !e.target.closest('.chat-menu-dropdown')) {
+        document.querySelectorAll('.chat-menu-dropdown').forEach(menu => {
+          menu.style.display = 'none';
+        });
+      }
+    }, true); // Use capture phase
+  });
+
+  // Toggle chat menu dropdown
+  function toggleChatMenu(menuElement, chatId, groupId, chatType, e) {
+    if (!menuElement) {
+      console.error('Menu element not found');
+      return false;
+    }
+    
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    }
+    
+    // Close all other menus first
+    document.querySelectorAll('.chat-menu-dropdown').forEach(menu => {
+      const parentMenu = menu.closest('.chat-menu');
+      if (parentMenu && parentMenu !== menuElement) {
+        menu.style.display = 'none';
+      }
+    });
+    
+    // Toggle current menu
+    const dropdown = menuElement.querySelector('.chat-menu-dropdown');
+    if (!dropdown) {
+      console.error('Dropdown not found in menu element', menuElement, 'Chat ID:', chatId, 'Group ID:', groupId);
+      // Try to find it another way
+      const allDropdowns = document.querySelectorAll('.chat-menu-dropdown');
+      console.log('All dropdowns found:', allDropdowns.length);
+      return false;
+    }
+    
+    const currentDisplay = window.getComputedStyle(dropdown).display;
+    const isHidden = currentDisplay === 'none' || dropdown.style.display === 'none' || !dropdown.style.display;
+    dropdown.style.display = isHidden ? 'block' : 'none';
+    console.log('Menu toggled:', isHidden ? 'shown' : 'hidden', 'for chat:', chatId || groupId);
+    
+    return false;
+  }
+
+  // Delete chat function
+  async function deleteChat(chatId, groupId, chatType) {
+    // Store the chat info for deletion
+    window.pendingDeleteChat = { chatId, groupId, chatType };
+    
+    // Show confirmation modal
+    const modal = new bootstrap.Modal(document.getElementById('deleteChatModal'));
+    modal.show();
+    
+    // Close menu dropdown
+    document.querySelectorAll('.chat-menu-dropdown').forEach(menu => {
+      menu.style.display = 'none';
+    });
+  }
+
+  // Confirm delete function (called from modal button)
+  async function confirmDeleteChat() {
+    const { chatId, groupId, chatType } = window.pendingDeleteChat || {};
+    
+    if (!chatId && !groupId) {
+      alert('Error: Invalid chat information');
+      return;
+    }
+    
+    const csrfToken = getCookie('csrftoken');
+    
+    try {
+      let url;
+      if (chatType === 'private' && chatId) {
+        url = `/api/delete-chat/${chatId}/`;
+      } else if (chatType === 'group' && groupId) {
+        url = `/api/delete-group-chat/${groupId}/`;
+      } else {
+        alert('Invalid chat type');
+        return;
+      }
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      const data = await response.json();
+      
+      // Close modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('deleteChatModal'));
+      if (modal) {
+        modal.hide();
+      }
+      
+      if (!response.ok) {
+        alert('Error: ' + (data.error || 'Failed to delete chat'));
+        return;
+      }
+      
+      if (data.success) {
+        // Remove the chat item from the list
+        const chatItem = chatId 
+          ? document.querySelector(`.chat-item[data-chat-id="${chatId}"]`)
+          : document.querySelector(`.chat-item[data-group-id="${groupId}"]`);
+        
+        if (chatItem) {
+          chatItem.remove();
+        }
+        
+        // Redirect to all-chats page without the chat/group parameter
+        window.location.href = '/all-chats';
+      } else {
+        alert('Error: ' + (data.error || 'Failed to delete chat'));
+      }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      alert('Error deleting chat: ' + error.message);
+      
+      // Close modal on error
+      const modal = bootstrap.Modal.getInstance(document.getElementById('deleteChatModal'));
+      if (modal) {
+        modal.hide();
+      }
+    } finally {
+      // Clear pending delete info
+      window.pendingDeleteChat = null;
+    }
+  }
+
+  // Attach confirm button handler when modal is shown
+  document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteChatModal');
+    if (deleteModal) {
+      // Use event delegation for the confirm button
+      deleteModal.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'confirmDeleteBtn') {
+          confirmDeleteChat();
+        }
+      });
+    }
+  });
+
+  // Block user function (placeholder for now)
+  function blockUser(userId) {
+    alert('Block functionality will be implemented soon.');
+    // Close menu
+    document.querySelectorAll('.chat-menu-dropdown').forEach(menu => {
+      menu.style.display = 'none';
+    });
+  }
+
+  // Block group function (placeholder for now)
+  function blockGroup(groupId) {
+    alert('Block group functionality will be implemented soon.');
+    // Close menu
+    document.querySelectorAll('.chat-menu-dropdown').forEach(menu => {
+      menu.style.display = 'none';
+    });
+  }
 
   // Auto-scroll to bottom when page loads or chat changes
   function scrollToBottom() {
@@ -523,6 +1004,16 @@ All Chats
 
     const bubble = document.createElement('div');
     bubble.className = 'message-bubble';
+    
+    // Apply message color if available - simple, vibrant style
+    const messageColor = msg.message_color || '#4a3a6f';
+    if (msg.is_me) {
+      // Sent messages - solid vibrant color
+      bubble.style.cssText = `background: ${messageColor}; border: none;`;
+    } else {
+      // Received messages - solid color with border
+      bubble.style.cssText = `background: ${messageColor}; border: 1px solid ${messageColor}40;`;
+    }
 
     const text = document.createElement('p');
     text.className = 'message-text';
@@ -533,17 +1024,31 @@ All Chats
     // Create avatar element
     const avatarDiv = document.createElement('div');
     avatarDiv.className = 'message-avatar-small';
+    avatarDiv.style.cursor = 'pointer';
+    
+    // Get user ID from message if available, otherwise we'll need to fetch it
+    // For now, we'll use a placeholder - you may need to include user_id in the API response
+    const userId = msg.user_id || null;
+    const username = msg.sender || 'User';
+    
+    if (userId) {
+      avatarDiv.setAttribute('data-user-id', userId);
+      avatarDiv.setAttribute('data-username', username);
+      avatarDiv.onclick = function() {
+        showUserProfileFromMessage(parseInt(userId), username);
+      };
+    }
     
     if (msg.avatar && msg.avatar !== 'default') {
       const avatarImg = document.createElement('img');
       avatarImg.src = `/static/avatars/${msg.avatar}.png`;
-      avatarImg.alt = msg.sender || 'User';
-      avatarImg.style.cssText = 'width: 52px; height: 52px; border-radius: 8px; object-fit: cover;';
+      avatarImg.alt = username;
+      avatarImg.style.cssText = 'width: 52px; height: 52px; border-radius: 8px; object-fit: cover; pointer-events: none;';
       avatarDiv.appendChild(avatarImg);
     } else {
       const avatarCircle = document.createElement('div');
       avatarCircle.className = 'avatar-circle small';
-      avatarCircle.textContent = (msg.sender || 'U').charAt(0).toUpperCase();
+      avatarCircle.textContent = username.charAt(0).toUpperCase();
       avatarDiv.appendChild(avatarCircle);
     }
 
@@ -551,14 +1056,7 @@ All Chats
       wrapper.appendChild(bubble);
       wrapper.appendChild(avatarDiv);
     } else {
-      // Add sender name for group chats if needed
-      if (msg.sender && !msg.is_me) {
-        const senderName = document.createElement('div');
-        senderName.className = 'message-sender-name';
-        senderName.style.cssText = 'font-size: 0.75rem; color: #8b98a5; margin-bottom: 4px;';
-        senderName.textContent = msg.sender;
-        bubble.insertBefore(senderName, text);
-      }
+      // Don't add sender name for group chats
       wrapper.appendChild(avatarDiv);
       wrapper.appendChild(bubble);
     }
@@ -660,12 +1158,27 @@ All Chats
     if (!chatList) return;
 
     const selectedChatId = new URLSearchParams(window.location.search).get('chat_id');
+    const selectedGroupId = new URLSearchParams(window.location.search).get('group_id');
     const newChatIds = new Set();
 
     // Update or create chat items
     chatsData.forEach(chat => {
-      const chatId = chat.id;
-      newChatIds.add(chatId);
+      try {
+        // Skip if this is a group (groups are handled separately or should be filtered out)
+        if (!chat || chat.type === 'group') {
+          return; // Skip groups or invalid chats
+        }
+        
+        // Only process private chats that have other_user
+        if (!chat.other_user) {
+          return; // Skip if other_user is missing
+        }
+        
+        const chatId = chat.id;
+        if (!chatId) {
+          return; // Skip if no chat ID
+        }
+        newChatIds.add(chatId);
       
       let chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
       const isActive = selectedChatId && parseInt(selectedChatId, 10) === chatId;
@@ -676,19 +1189,25 @@ All Chats
         chatItem.href = `?chat_id=${chatId}`;
         chatItem.className = `chat-item${isActive ? ' active' : ''}`;
         chatItem.setAttribute('data-chat-id', chatId);
+        chatItem.setAttribute('data-chat-type', 'private');
 
         const avatar = document.createElement('div');
         avatar.className = 'chat-avatar';
-        if (chat.other_user.avatar && chat.other_user.avatar !== 'default') {
+        // Defensive check for other_user and avatar
+        const otherUser = chat.other_user || {};
+        const userAvatar = otherUser.avatar;
+        const username = otherUser.username || 'User';
+        
+        if (userAvatar && userAvatar !== 'default') {
           const avatarImg = document.createElement('img');
-          avatarImg.src = `/static/avatars/${chat.other_user.avatar}.png`;
-          avatarImg.alt = chat.other_user.username;
+          avatarImg.src = `/static/avatars/${userAvatar}.png`;
+          avatarImg.alt = username;
           avatarImg.style.cssText = 'width: 48px; height: 48px; border-radius: 14px; object-fit: cover;';
           avatar.appendChild(avatarImg);
         } else {
           const avatarCircle = document.createElement('div');
           avatarCircle.className = 'avatar-circle';
-          avatarCircle.textContent = chat.other_user.username.charAt(0).toUpperCase();
+          avatarCircle.textContent = username.charAt(0).toUpperCase();
           avatar.appendChild(avatarCircle);
         }
 
@@ -700,7 +1219,7 @@ All Chats
         
         const name = document.createElement('h5');
         name.className = 'chat-name';
-        name.textContent = chat.other_user.username;
+        name.textContent = username || 'Unknown User';
         preview.appendChild(name);
         
         const message = document.createElement('p');
@@ -716,6 +1235,115 @@ All Chats
         content.appendChild(preview);
         chatItem.appendChild(avatar);
         chatItem.appendChild(content);
+
+        // Add chat actions (menu on top, heart on bottom)
+        const chatActions = document.createElement('div');
+        chatActions.className = 'chat-actions';
+        
+        // Menu (on top)
+        const menuDiv = document.createElement('div');
+        menuDiv.className = 'chat-menu';
+        menuDiv.setAttribute('data-chat-id', chatId);
+        menuDiv.setAttribute('data-chat-type', 'private');
+        menuDiv.style.cssText = 'pointer-events: auto; cursor: pointer; z-index: 1000;';
+        // Add direct click handler
+        menuDiv.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          toggleChatMenu(menuDiv, chatId, null, 'private', e);
+          return false;
+        };
+        const menuDots = document.createElement('span');
+        menuDots.className = 'menu-dots';
+        menuDots.textContent = '⋯';
+        menuDiv.appendChild(menuDots);
+        
+        const dropdown = document.createElement('div');
+        dropdown.className = 'chat-menu-dropdown';
+        dropdown.style.display = 'none';
+        
+        // Add mouseleave handlers for auto-close with delay
+        let closeTimeout = null;
+        
+        const cancelClose = function() {
+          if (closeTimeout) {
+            clearTimeout(closeTimeout);
+            closeTimeout = null;
+          }
+        };
+        
+        const scheduleClose = function() {
+          cancelClose();
+          closeTimeout = setTimeout(function() {
+            if (dropdown.style.display !== 'none') {
+              dropdown.style.display = 'none';
+            }
+          }, 300); // 300ms delay before closing
+        };
+        
+        menuDiv.addEventListener('mouseleave', function(e) {
+          const relatedTarget = e.relatedTarget;
+          if (!relatedTarget || (!menuDiv.contains(relatedTarget) && !dropdown.contains(relatedTarget))) {
+            scheduleClose();
+          }
+        });
+        
+        menuDiv.addEventListener('mouseenter', cancelClose);
+        
+        dropdown.addEventListener('mouseleave', function(e) {
+          const relatedTarget = e.relatedTarget;
+          if (!relatedTarget || (!menuDiv.contains(relatedTarget) && !dropdown.contains(relatedTarget))) {
+            scheduleClose();
+          }
+        });
+        
+        dropdown.addEventListener('mouseenter', cancelClose);
+        
+        const deleteItem = document.createElement('div');
+        deleteItem.className = 'menu-item';
+        deleteItem.onclick = function(e) {
+          e.stopPropagation();
+          deleteChat(chatId, null, 'private');
+        };
+        deleteItem.innerHTML = '<span class="menu-icon">🗑️</span><span>Delete Chat</span>';
+        dropdown.appendChild(deleteItem);
+        
+        const blockItem = document.createElement('div');
+        blockItem.className = 'menu-item';
+        blockItem.onclick = function(e) {
+          e.stopPropagation();
+          blockUser(otherUser.id);
+        };
+        blockItem.innerHTML = '<span class="menu-icon">🚫</span><span>Block User</span>';
+        dropdown.appendChild(blockItem);
+        
+        menuDiv.appendChild(dropdown);
+        chatActions.appendChild(menuDiv);
+        
+        // Ensure handler is attached (in case attachMenuHandlers hasn't run yet)
+        if (typeof attachMenuHandlers === 'function') {
+          attachMenuHandlers();
+        }
+        
+        // Heart icon (on bottom)
+        const heartDiv = document.createElement('div');
+        heartDiv.className = 'chat-heart';
+        heartDiv.setAttribute('data-chat-id', chatId);
+        heartDiv.setAttribute('data-chat-type', 'private');
+        heartDiv.style.cssText = 'pointer-events: auto;';
+        heartDiv.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleFavorite(chatId, null, heartDiv);
+        };
+        const heartIcon = document.createElement('span');
+        heartIcon.className = 'heart-icon';
+        heartIcon.textContent = '🤍';
+        heartDiv.appendChild(heartIcon);
+        chatActions.appendChild(heartDiv);
+        
+        chatItem.appendChild(chatActions);
 
         // Insert at the beginning (newest first)
         if (chatList.children.length === 0 || chatList.querySelector('.text-muted')) {
@@ -755,6 +1383,10 @@ All Chats
         if (currentFirst && currentFirst !== chatItem) {
           chatList.insertBefore(chatItem, currentFirst);
         }
+      }
+      } catch (error) {
+        console.error('Error processing chat item:', error, chat);
+        // Continue with next chat item
       }
     });
 
@@ -1000,6 +1632,16 @@ All Chats
   document.addEventListener('DOMContentLoaded', function() {
     initializeChatIds();
     startChatListPolling();
+    
+    // Setup member item click handlers - try multiple times to ensure it works
+    function trySetupHandlers() {
+      setupMemberItemClickHandlers();
+      // Try again after a delay in case the element wasn't ready
+      setTimeout(function() {
+        setupMemberItemClickHandlers();
+      }, 500);
+    }
+    trySetupHandlers();
     const chatItems = document.querySelectorAll('.chat-item');
     chatItems.forEach(item => {
       item.addEventListener('click', function(e) {
@@ -1083,5 +1725,1228 @@ All Chats
   });
 
   // Group info sidebar is always visible now (no toggle needed)
+  
+  // Add click handlers to member items using event delegation
+  function setupMemberItemClickHandlers() {
+    // Use event delegation on the group-info-content container
+    const groupInfoContent = document.getElementById('groupInfoContent');
+    console.log('Setting up member item click handlers, groupInfoContent:', groupInfoContent);
+    
+    if (groupInfoContent) {
+      // Remove existing handler if any
+      const existingHandler = groupInfoContent._clickHandler;
+      if (existingHandler) {
+        groupInfoContent.removeEventListener('click', existingHandler);
+      }
+      
+      // Create new handler
+      const clickHandler = function(e) {
+        console.log('Click detected in groupInfoContent, target:', e.target, 'currentTarget:', e.currentTarget);
+        // Find the closest member-item with data-user-id
+        const memberItem = e.target.closest('.member-item[data-user-id]');
+        console.log('Closest member-item:', memberItem);
+        
+        if (memberItem) {
+          e.preventDefault();
+          e.stopPropagation();
+          const userId = memberItem.getAttribute('data-user-id');
+          const username = memberItem.getAttribute('data-username');
+          console.log('Member item clicked:', userId, username);
+          if (userId && username) {
+            showUserProfile(parseInt(userId), username);
+          } else {
+            console.error('Missing userId or username:', { userId, username });
+          }
+        }
+      };
+      
+      // Store handler reference
+      groupInfoContent._clickHandler = clickHandler;
+      groupInfoContent.addEventListener('click', clickHandler, true); // Use capture phase
+      console.log('Click handler attached to groupInfoContent');
+      
+      // Also try direct attachment to member items as backup
+      const memberItems = groupInfoContent.querySelectorAll('.member-item[data-user-id]');
+      console.log('Found member items:', memberItems.length);
+      memberItems.forEach(function(item, index) {
+        console.log(`Member item ${index}:`, item, 'data-user-id:', item.getAttribute('data-user-id'));
+        
+        // Check if handler already attached
+        if (item.hasAttribute('data-handler-attached')) {
+          console.log(`Handler already attached to member item ${index}`);
+          return;
+        }
+        
+        item.setAttribute('data-handler-attached', 'true');
+        
+        // Add click handler - handle clicks on the item or any child
+        function handleMemberClick(e) {
+          console.log('CLICK EVENT FIRED on member item:', this, 'target:', e.target);
+          e.preventDefault();
+          e.stopPropagation();
+          const userId = this.getAttribute('data-user-id');
+          const username = this.getAttribute('data-username');
+          console.log('Direct click on member item:', userId, username);
+          if (userId && username) {
+            showUserProfile(parseInt(userId), username);
+          }
+          return false;
+        }
+        
+        item.addEventListener('click', handleMemberClick, true);
+        
+        // Also make child elements clickable
+        const children = item.querySelectorAll('*');
+        children.forEach(function(child) {
+          child.style.pointerEvents = 'auto';
+          child.style.cursor = 'pointer';
+          child.addEventListener('click', function(e) {
+            console.log('Click on child element, bubbling to parent');
+            e.stopPropagation();
+            const parentItem = this.closest('.member-item[data-user-id]');
+            if (parentItem) {
+              const userId = parentItem.getAttribute('data-user-id');
+              const username = parentItem.getAttribute('data-username');
+              if (userId && username) {
+                showUserProfile(parseInt(userId), username);
+              }
+            }
+          }, true);
+        });
+        
+        // Also add mousedown as backup
+        item.addEventListener('mousedown', function(e) {
+          console.log('MOUSEDOWN EVENT FIRED on member item:', this);
+          e.preventDefault();
+          e.stopPropagation();
+          const userId = this.getAttribute('data-user-id');
+          const username = this.getAttribute('data-username');
+          if (userId && username) {
+            showUserProfile(parseInt(userId), username);
+          }
+          return false;
+        }, true);
+        
+        // Make sure it's clickable
+        item.style.pointerEvents = 'auto';
+        item.style.cursor = 'pointer';
+        console.log(`Handler attached to member item ${index}`);
+      });
+    } else {
+      console.error('groupInfoContent not found!');
+    }
+  }
+  
+  // Show user profile from message avatar click (works for both private and group chats)
+  async function showUserProfileFromMessage(userId, username) {
+    console.log('showUserProfileFromMessage called with:', userId, username);
+    
+    // Check if we're in a group chat - if so, show in group info sidebar
+    const groupInfoSidebar = document.getElementById('groupInfoSidebar');
+    if (groupInfoSidebar && groupInfoSidebar.classList.contains('active')) {
+      // We're in a group, show profile in group info sidebar
+      await showUserProfile(userId, username);
+      return;
+    }
+    
+    // Otherwise, we're in a private chat - update the private chat info sidebar
+    await showUserProfileInPrivateChat(userId, username);
+  }
+  
+  // Show user profile in private chat info sidebar
+  async function showUserProfileInPrivateChat(userId, username) {
+    try {
+      const response = await fetch(`/api/user-profile/${userId}/`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      const data = await response.json();
+      
+      // Update the private chat info sidebar
+      const privateChatInfoContent = document.querySelector('.private-chat-info-content');
+      if (!privateChatInfoContent) {
+        // Fallback to group info sidebar if available
+        await showUserProfile(userId, username);
+        return;
+      }
+      
+      // Update avatar
+      const avatarSection = privateChatInfoContent.querySelector('.profile-avatar-section');
+      if (avatarSection) {
+        const avatarContainer = avatarSection.querySelector('img, .profile-avatar-large');
+        if (data.avatar && data.avatar !== 'default') {
+          if (avatarContainer.tagName === 'IMG') {
+            avatarContainer.src = `/static/avatars/${data.avatar}.png`;
+          } else {
+            avatarContainer.outerHTML = `<img src="/static/avatars/${data.avatar}.png" alt="${username}" class="profile-avatar-large" style="width: 120px; height: 120px; border-radius: 20px; object-fit: cover;">`;
+          }
+        } else {
+          if (avatarContainer.tagName === 'IMG') {
+            avatarContainer.outerHTML = `<div class="profile-avatar-large">${username.charAt(0).toUpperCase()}</div>`;
+          } else {
+            avatarContainer.textContent = username.charAt(0).toUpperCase();
+          }
+        }
+        
+        // Update name
+        const nameElement = avatarSection.querySelector('h3');
+        if (nameElement) {
+          nameElement.textContent = data.display_name || username;
+        }
+        
+        const usernameElement = avatarSection.querySelector('.profile-username');
+        if (usernameElement) {
+          usernameElement.textContent = `@${username}`;
+        }
+      }
+      
+      // Update details
+      const usernameValue = privateChatInfoContent.querySelector('.detail-value');
+      if (usernameValue) {
+        usernameValue.textContent = `@${username}`;
+      }
+      
+      const displayNameItem = privateChatInfoContent.querySelector('#profileDisplayNameItem') || 
+                               Array.from(privateChatInfoContent.querySelectorAll('.profile-detail-item')).find(item => 
+                                 item.querySelector('.detail-label')?.textContent === 'Display Name'
+                               );
+      if (data.display_name) {
+        if (!displayNameItem || displayNameItem.style.display === 'none') {
+          // Create display name item if it doesn't exist
+          const detailsSection = privateChatInfoContent.querySelector('.profile-details-section');
+          if (detailsSection) {
+            const newItem = document.createElement('div');
+            newItem.className = 'profile-detail-item';
+            newItem.innerHTML = `
+              <span class="detail-label">Display Name</span>
+              <span class="detail-value">${data.display_name}</span>
+            `;
+            detailsSection.insertBefore(newItem, detailsSection.children[1]);
+          }
+        } else {
+          const value = displayNameItem.querySelector('.detail-value');
+          if (value) value.textContent = data.display_name;
+          displayNameItem.style.display = 'flex';
+        }
+      } else if (displayNameItem) {
+        displayNameItem.style.display = 'none';
+      }
+      
+      // Update age
+      const ageItem = Array.from(privateChatInfoContent.querySelectorAll('.profile-detail-item')).find(item => 
+        item.querySelector('.detail-label')?.textContent === 'Age'
+      );
+      if (ageItem) {
+        const value = ageItem.querySelector('.detail-value');
+        if (value) value.textContent = data.age || '-';
+      }
+      
+      // Update gender
+      const genderItem = Array.from(privateChatInfoContent.querySelectorAll('.profile-detail-item')).find(item => 
+        item.querySelector('.detail-label')?.textContent === 'Gender'
+      );
+      if (genderItem) {
+        const value = genderItem.querySelector('.detail-value');
+        if (value) value.textContent = data.gender ? data.gender.charAt(0).toUpperCase() + data.gender.slice(1) : '-';
+      }
+      
+      // Update hush points
+      const hushPointsItem = Array.from(privateChatInfoContent.querySelectorAll('.profile-detail-item')).find(item => 
+        item.querySelector('.detail-label')?.textContent === 'Hush Points'
+      );
+      if (hushPointsItem) {
+        const value = hushPointsItem.querySelector('.detail-value');
+        if (value) value.textContent = data.hush_points || 0;
+      }
+      
+      // Update gifts
+      const giftsGrid = privateChatInfoContent.querySelector('.gifts-grid');
+      if (giftsGrid) {
+        const giftItems = giftsGrid.querySelectorAll('.gift-item');
+        if (giftItems.length >= 4) {
+          giftItems[0].querySelector('.gift-count').textContent = data.gift_counts?.love_letter || 0;
+          giftItems[1].querySelector('.gift-count').textContent = data.gift_counts?.clove || 0;
+          giftItems[2].querySelector('.gift-count').textContent = data.gift_counts?.golden_heart || 0;
+          giftItems[3].querySelector('.gift-count').textContent = data.gift_counts?.pearl || 0;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      alert('Failed to load user profile');
+    }
+  }
+  
+  // Show user profile in group info sidebar
+  async function showUserProfile(userId, username) {
+    console.log('showUserProfile called with:', userId, username);
+    try {
+      const response = await fetch(`/api/user-profile/${userId}/`);
+      console.log('API response status:', response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error:', errorText);
+        throw new Error('Failed to fetch user profile: ' + response.status);
+      }
+      const data = await response.json();
+      console.log('Profile data received:', data);
+      
+      // Hide group info content
+      const groupInfoContent = document.getElementById('groupInfoContent');
+      const userProfileView = document.getElementById('userProfileView');
+      const groupInfoHeader = document.getElementById('groupInfoHeader');
+      const backToGroupBtn = document.getElementById('backToGroupBtn');
+      
+      if (!groupInfoContent || !userProfileView || !groupInfoHeader) {
+        console.error('Required elements not found', { groupInfoContent, userProfileView, groupInfoHeader });
+        return;
+      }
+      
+      // Hide group info and show profile
+      // Hide group info content sections (but keep groupInfoContent visible so userProfileView can show)
+      const groupNameSection = groupInfoContent.querySelector('.group-name-section');
+      const groupMembersSection = groupInfoContent.querySelector('.group-members-section');
+      const groupActions = groupInfoContent.querySelector('.group-actions');
+      
+      console.log('Hiding group sections:', {
+        groupNameSection: !!groupNameSection,
+        groupMembersSection: !!groupMembersSection,
+        groupActions: !!groupActions
+      });
+      
+      if (groupNameSection) {
+        groupNameSection.style.display = 'none';
+        groupNameSection.style.visibility = 'hidden';
+        groupNameSection.style.opacity = '0';
+        groupNameSection.style.position = 'absolute';
+        groupNameSection.style.left = '-9999px';
+      }
+      if (groupMembersSection) {
+        groupMembersSection.style.display = 'none';
+        groupMembersSection.style.visibility = 'hidden';
+        groupMembersSection.style.opacity = '0';
+        groupMembersSection.style.position = 'absolute';
+        groupMembersSection.style.left = '-9999px';
+      }
+      if (groupActions) {
+        groupActions.style.display = 'none';
+        groupActions.style.visibility = 'hidden';
+        groupActions.style.opacity = '0';
+        groupActions.style.position = 'absolute';
+        groupActions.style.left = '-9999px';
+      }
+      
+      // Show profile view - it's inside groupInfoContent, so we just need to show it
+      console.log('Before showing profile view:', {
+        display: userProfileView.style.display,
+        visibility: userProfileView.style.visibility,
+        opacity: userProfileView.style.opacity
+      });
+      
+      userProfileView.style.display = 'block';
+      userProfileView.style.visibility = 'visible';
+      userProfileView.style.opacity = '1';
+      userProfileView.style.height = 'auto';
+      userProfileView.style.minHeight = '100%';
+      userProfileView.style.width = '100%';
+      userProfileView.style.position = 'relative';
+      userProfileView.style.left = 'auto';
+      userProfileView.style.zIndex = '10';
+      userProfileView.style.background = 'transparent';
+      userProfileView.style.color = '#e1e8ed';
+      userProfileView.style.overflow = 'visible';
+      
+      console.log('After showing profile view:', {
+        display: userProfileView.style.display,
+        visibility: userProfileView.style.visibility,
+        opacity: userProfileView.style.opacity,
+        computedDisplay: window.getComputedStyle(userProfileView).display
+      });
+      
+      groupInfoHeader.textContent = 'Profile';
+      if (backToGroupBtn) backToGroupBtn.style.display = 'block';
+      
+      // Populate profile data - use same structure as private chat profile
+      const avatarContainer = document.getElementById('profileAvatarContainer');
+      if (!avatarContainer) {
+        console.error('profileAvatarContainer not found');
+        return;
+      }
+      
+      // Clear and populate avatar
+      avatarContainer.innerHTML = '';
+      let avatarElement;
+      if (data.avatar && data.avatar !== 'default') {
+        avatarElement = document.createElement('img');
+        avatarElement.src = `/static/avatars/${data.avatar}.png`;
+        avatarElement.alt = username;
+        avatarElement.className = 'profile-avatar-large';
+        avatarElement.style.cssText = 'width: 120px; height: 120px; border-radius: 20px; object-fit: cover; display: block; margin: 0 auto 16px; visibility: visible; opacity: 1;';
+      } else {
+        avatarElement = document.createElement('div');
+        avatarElement.className = 'profile-avatar-large';
+        avatarElement.textContent = username.charAt(0).toUpperCase();
+        avatarElement.style.cssText = 'width: 120px; height: 120px; border-radius: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 48px; margin: 0 auto 16px; visibility: visible; opacity: 1;';
+      }
+      avatarContainer.appendChild(avatarElement);
+      avatarContainer.style.display = 'block';
+      avatarContainer.style.visibility = 'visible';
+      console.log('Avatar populated:', avatarElement, 'Container:', avatarContainer);
+      
+      // Update name section - match private chat format
+      const profileDisplayName = document.getElementById('profileDisplayName');
+      const profileUsername = document.getElementById('profileUsername');
+      
+      if (profileDisplayName) {
+        if (data.display_name) {
+          profileDisplayName.textContent = data.display_name;
+        } else {
+          profileDisplayName.textContent = username;
+        }
+        profileDisplayName.style.display = 'block';
+        profileDisplayName.style.visibility = 'visible';
+        profileDisplayName.style.color = '#e1e8ed';
+        profileDisplayName.style.fontSize = '1.5rem';
+        profileDisplayName.style.fontWeight = '600';
+        profileDisplayName.style.margin = '0 0 8px 0';
+        console.log('Display name set:', profileDisplayName.textContent, 'Element:', profileDisplayName);
+      } else {
+        console.error('profileDisplayName element not found!');
+      }
+      
+      if (profileUsername) {
+        if (data.display_name) {
+          profileUsername.textContent = `@${username}`;
+          profileUsername.style.display = 'block';
+          profileUsername.style.visibility = 'visible';
+          profileUsername.style.color = '#8b98a5';
+          profileUsername.style.fontSize = '1rem';
+          profileUsername.style.margin = '0';
+        } else {
+          profileUsername.style.display = 'none';
+        }
+        console.log('Username set:', profileUsername.textContent, 'Element:', profileUsername);
+      } else {
+        console.error('profileUsername element not found!');
+      }
+      
+      // Update details section
+      const profileUsernameValue = document.getElementById('profileUsernameValue');
+      const profileDisplayNameItem = document.getElementById('profileDisplayNameItem');
+      const profileDisplayNameValue = document.getElementById('profileDisplayNameValue');
+      const profileAgeValue = document.getElementById('profileAgeValue');
+      const profileGenderValue = document.getElementById('profileGenderValue');
+      const profileHushPointsValue = document.getElementById('profileHushPointsValue');
+      
+      if (profileUsernameValue) {
+        profileUsernameValue.textContent = `@${username}`;
+        console.log('Username value set:', profileUsernameValue.textContent);
+      }
+      
+      if (data.display_name) {
+        if (profileDisplayNameItem) {
+          profileDisplayNameItem.style.display = 'flex';
+          if (profileDisplayNameValue) {
+            profileDisplayNameValue.textContent = data.display_name;
+          }
+        }
+      } else {
+        if (profileDisplayNameItem) {
+          profileDisplayNameItem.style.display = 'none';
+        }
+      }
+      
+      if (profileAgeValue) {
+        profileAgeValue.textContent = data.age || '-';
+        console.log('Age set:', profileAgeValue.textContent);
+      }
+      
+      if (profileGenderValue) {
+        const genderText = data.gender ? data.gender.charAt(0).toUpperCase() + data.gender.slice(1) : '-';
+        profileGenderValue.textContent = genderText;
+        console.log('Gender set:', genderText);
+      }
+      
+      if (profileHushPointsValue) {
+        profileHushPointsValue.textContent = data.hush_points || 0;
+        console.log('Hush points set:', profileHushPointsValue.textContent);
+      }
+      
+      // Update gifts
+      const giftLoveLetter = document.getElementById('giftLoveLetter');
+      const giftClove = document.getElementById('giftClove');
+      const giftGoldenHeart = document.getElementById('giftGoldenHeart');
+      const giftPearl = document.getElementById('giftPearl');
+      
+      if (giftLoveLetter) {
+        giftLoveLetter.textContent = data.gift_counts?.love_letter || 0;
+        console.log('Gift love letter set:', giftLoveLetter.textContent);
+      }
+      if (giftClove) {
+        giftClove.textContent = data.gift_counts?.clove || 0;
+        console.log('Gift clove set:', giftClove.textContent);
+      }
+      if (giftGoldenHeart) {
+        giftGoldenHeart.textContent = data.gift_counts?.golden_heart || 0;
+        console.log('Gift golden heart set:', giftGoldenHeart.textContent);
+      }
+      if (giftPearl) {
+        giftPearl.textContent = data.gift_counts?.pearl || 0;
+        console.log('Gift pearl set:', giftPearl.textContent);
+      }
+      
+      // Force visibility of all sections and ensure they have proper styling
+      const profileAvatarSection = userProfileView.querySelector('.profile-avatar-section');
+      const profileDetailsSection = userProfileView.querySelector('.profile-details-section');
+      const giftsSection = userProfileView.querySelector('.gifts-section');
+      
+      console.log('Profile sections found:', {
+        avatarSection: !!profileAvatarSection,
+        detailsSection: !!profileDetailsSection,
+        giftsSection: !!giftsSection
+      });
+      
+      if (profileAvatarSection) {
+        profileAvatarSection.style.display = 'block';
+        profileAvatarSection.style.visibility = 'visible';
+        profileAvatarSection.style.opacity = '1';
+        profileAvatarSection.style.color = '#e1e8ed';
+        profileAvatarSection.style.textAlign = 'center';
+        profileAvatarSection.style.marginBottom = '24px';
+      }
+      if (profileDetailsSection) {
+        profileDetailsSection.style.display = 'block';
+        profileDetailsSection.style.visibility = 'visible';
+        profileDetailsSection.style.opacity = '1';
+        profileDetailsSection.style.color = '#e1e8ed';
+        profileDetailsSection.style.marginTop = '24px';
+      }
+      if (giftsSection) {
+        giftsSection.style.display = 'block';
+        giftsSection.style.visibility = 'visible';
+        giftsSection.style.opacity = '1';
+        giftsSection.style.marginTop = '24px';
+        giftsSection.style.paddingTop = '24px';
+        giftsSection.style.borderTop = '1px solid rgba(42, 52, 65, 0.3)';
+      }
+      
+      // Ensure all detail items are visible
+      const detailItems = userProfileView.querySelectorAll('.profile-detail-item');
+      detailItems.forEach(function(item) {
+        item.style.display = 'flex';
+        item.style.visibility = 'visible';
+        item.style.color = '#e1e8ed';
+        const label = item.querySelector('.detail-label');
+        const value = item.querySelector('.detail-value');
+        if (label) {
+          label.style.color = '#8b98a5';
+          label.style.fontSize = '0.9rem';
+        }
+        if (value) {
+          value.style.color = '#e1e8ed';
+          value.style.fontSize = '0.9rem';
+          value.style.fontWeight = '600';
+        }
+      });
+      
+      console.log('All profile sections styled and made visible');
+      
+      console.log('Profile data populated successfully', {
+        username: data.username,
+        display_name: data.display_name,
+        age: data.age,
+        gender: data.gender,
+        hush_points: data.hush_points,
+        gifts: data.gift_counts,
+        userProfileViewVisible: userProfileView.style.display,
+        avatarSection: profileAvatarSection ? 'found' : 'not found',
+        detailsSection: profileDetailsSection ? 'found' : 'not found',
+        giftsSection: giftsSection ? 'found' : 'not found'
+      });
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      alert('Failed to load user profile');
+    }
+  }
+  
+  // Show group info (hide profile view)
+  function showGroupInfo() {
+    console.log('showGroupInfo called');
+    const groupInfoContent = document.getElementById('groupInfoContent');
+    const userProfileView = document.getElementById('userProfileView');
+    const groupInfoHeader = document.getElementById('groupInfoHeader');
+    const backToGroupBtn = document.getElementById('backToGroupBtn');
+    
+    // Hide profile view completely
+    if (userProfileView) {
+      userProfileView.style.display = 'none';
+      userProfileView.style.visibility = 'hidden';
+      userProfileView.style.opacity = '0';
+      userProfileView.style.height = '0';
+      userProfileView.style.overflow = 'hidden';
+      userProfileView.style.position = 'absolute';
+      userProfileView.style.left = '-9999px';
+      userProfileView.style.width = '0';
+      console.log('Profile view hidden');
+    }
+    
+    // Show group info content sections - reset all styles
+    const groupNameSection = groupInfoContent?.querySelector('.group-name-section');
+    const groupMembersSection = groupInfoContent?.querySelector('.group-members-section');
+    const groupActions = groupInfoContent?.querySelector('.group-actions');
+    
+    if (groupNameSection) {
+      groupNameSection.style.display = 'block';
+      groupNameSection.style.visibility = 'visible';
+      groupNameSection.style.opacity = '1';
+      groupNameSection.style.position = 'relative';
+      groupNameSection.style.left = 'auto';
+      groupNameSection.style.height = 'auto';
+      groupNameSection.style.overflow = 'visible';
+      console.log('Group name section shown');
+    }
+    if (groupMembersSection) {
+      groupMembersSection.style.display = 'block';
+      groupMembersSection.style.visibility = 'visible';
+      groupMembersSection.style.opacity = '1';
+      groupMembersSection.style.position = 'relative';
+      groupMembersSection.style.left = 'auto';
+      groupMembersSection.style.height = 'auto';
+      groupMembersSection.style.overflow = 'visible';
+      console.log('Group members section shown');
+    }
+    if (groupActions) {
+      groupActions.style.display = 'block';
+      groupActions.style.visibility = 'visible';
+      groupActions.style.opacity = '1';
+      groupActions.style.position = 'relative';
+      groupActions.style.left = 'auto';
+      groupActions.style.height = 'auto';
+      groupActions.style.overflow = 'visible';
+      console.log('Group actions shown');
+    }
+    
+    if (groupInfoHeader) groupInfoHeader.textContent = 'Group Info';
+    if (backToGroupBtn) backToGroupBtn.style.display = 'none';
+    
+    console.log('Group info restored');
+  }
+  
+  // Edit group description
+  function editGroupDescription() {
+    const descriptionDisplay = document.getElementById('groupDescriptionDisplay');
+    const descriptionEdit = document.getElementById('groupDescriptionEdit');
+    const descriptionInput = document.getElementById('groupDescriptionInput');
+    
+    if (descriptionDisplay && descriptionEdit && descriptionInput) {
+      descriptionDisplay.style.display = 'none';
+      descriptionEdit.style.display = 'block';
+      descriptionInput.focus();
+      descriptionInput.select();
+    }
+  }
+
+  // Save group description
+  async function saveGroupDescription() {
+    const descriptionInput = document.getElementById('groupDescriptionInput');
+    if (!descriptionInput) return;
+    
+    const description = descriptionInput.value.trim();
+    const groupId = {{ selected_group.id }};
+    
+    try {
+      const csrfToken = getCookie('csrftoken');
+      const response = await fetch(`/api/update-group-description/${groupId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ description: description })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update description');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        // Hide edit mode first
+        const descriptionDisplay = document.getElementById('groupDescriptionDisplay');
+        const descriptionEdit = document.getElementById('groupDescriptionEdit');
+        const descriptionText = document.getElementById('groupDescriptionText');
+        
+        if (descriptionDisplay && descriptionEdit) {
+          descriptionEdit.style.display = 'none';
+          descriptionDisplay.style.display = 'block';
+        }
+        
+        // Update the display text
+        if (descriptionText) {
+          if (description) {
+            descriptionText.textContent = description;
+            descriptionText.style.color = '#e0e0e0';
+            descriptionText.style.fontStyle = 'normal';
+          } else {
+            descriptionText.textContent = 'Click to add a description...';
+            descriptionText.style.color = '#8b98a5';
+            descriptionText.style.fontStyle = 'italic';
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error updating description:', error);
+      alert('Failed to update description: ' + error.message);
+    }
+  }
+  
+  // Cancel editing description
+  function cancelEditDescription() {
+    const descriptionDisplay = document.getElementById('groupDescriptionDisplay');
+    const descriptionEdit = document.getElementById('groupDescriptionEdit');
+    const descriptionInput = document.getElementById('groupDescriptionInput');
+    
+    if (descriptionDisplay && descriptionEdit && descriptionInput) {
+      const originalDescription = '{{ selected_group.description|default:""|escapejs }}';
+      descriptionInput.value = originalDescription;
+      descriptionEdit.style.display = 'none';
+      descriptionDisplay.style.display = 'block';
+    }
+  }
+
+  // Toggle edit mode for name, description, and icon
+  function toggleGroupEditMode() {
+    const nameDisplay = document.getElementById('groupNameDisplay');
+    const nameEdit = document.getElementById('groupNameEdit');
+    const nameInput = document.getElementById('groupNameInput');
+    const iconDisplay = document.getElementById('groupIconDisplay');
+    const iconEdit = document.getElementById('groupIconEdit');
+    const iconInput = document.getElementById('groupIconInput');
+    const descDisplay = document.getElementById('groupDescriptionDisplay');
+    const descEdit = document.getElementById('groupDescriptionEdit');
+    const descInput = document.getElementById('groupDescriptionInput');
+    const editActions = document.getElementById('groupEditActions');
+    
+    // Check if we're currently in edit mode
+    const isEditMode = nameEdit && nameEdit.style.display !== 'none';
+    
+    if (isEditMode) {
+      // Switch to view mode
+      if (nameDisplay && nameEdit) {
+        nameDisplay.style.display = 'block';
+        nameEdit.style.display = 'none';
+      }
+      if (iconDisplay && iconEdit) {
+        iconDisplay.style.display = 'block';
+        iconEdit.style.display = 'none';
+      }
+      if (descDisplay && descEdit) {
+        descDisplay.style.display = 'block';
+        descEdit.style.display = 'none';
+      }
+      if (editActions) {
+        editActions.style.display = 'none';
+      }
+    } else {
+      // Switch to edit mode
+      if (nameDisplay && nameEdit) {
+        nameDisplay.style.display = 'none';
+        nameEdit.style.display = 'block';
+        if (nameInput) {
+          nameInput.focus();
+          nameInput.select();
+        }
+      }
+      if (iconDisplay && iconEdit) {
+        iconDisplay.style.display = 'none';
+        iconEdit.style.display = 'block';
+      }
+      if (descDisplay && descEdit) {
+        descDisplay.style.display = 'none';
+        descEdit.style.display = 'block';
+      }
+      if (editActions) {
+        editActions.style.display = 'block';
+      }
+    }
+  }
+
+  // Save all group edits (name, description, and icon)
+  async function saveAllGroupEdits() {
+    const groupId = {{ selected_group.id }};
+    const csrfToken = getCookie('csrftoken');
+    
+    let nameUpdated = false;
+    let iconUpdated = false;
+    let descriptionUpdated = false;
+    
+    // Save group name
+    const nameInput = document.getElementById('groupNameInput');
+    const groupName = nameInput ? nameInput.value.trim() : '';
+    
+    if (groupName) {
+      try {
+        const response = await fetch(`/api/update-group-name/${groupId}/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({ name: groupName })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          alert('Error updating group name: ' + (data.error || 'Failed to update group name'));
+        } else if (data.success) {
+          console.log('Group name updated successfully:', groupName);
+          nameUpdated = true;
+          
+          // First, remove ALL duplicate/incorrectly positioned group name elements
+          cleanupDuplicateGroupNames();
+          
+          // Update group name in sidebar (only if element exists and is in the correct context)
+          const groupInfoContent = document.getElementById('groupInfoContent');
+          if (groupInfoContent) {
+            const nameHeader = groupInfoContent.querySelector('#groupNameHeader');
+            if (nameHeader) {
+              nameHeader.textContent = groupName;
+              nameHeader.style.fontSize = '1.2rem';
+              nameHeader.style.display = 'block';
+            }
+            // Also update non-creator header if it exists
+            const nameHeaderNonCreator = groupInfoContent.querySelector('#groupNameHeaderNonCreator');
+            if (nameHeaderNonCreator) {
+              nameHeaderNonCreator.textContent = groupName;
+              nameHeaderNonCreator.style.fontSize = '1.2rem';
+              nameHeaderNonCreator.style.display = 'block';
+            }
+          }
+          // Update group name in chat header
+          const chatHeader = document.querySelector('.chat-header');
+          if (chatHeader) {
+            const groupNameInHeader = chatHeader.querySelector('#groupNameInHeader');
+            if (groupNameInHeader) {
+              groupNameInHeader.textContent = groupName;
+            }
+          }
+          // Update group name in chat list (if visible)
+          const chatListItems = document.querySelectorAll('.chat-item[data-group-id]');
+          chatListItems.forEach(item => {
+            const itemGroupId = item.getAttribute('data-group-id');
+            if (itemGroupId && parseInt(itemGroupId) === groupId) {
+              const chatNameElement = item.querySelector('.chat-name');
+              if (chatNameElement) {
+                chatNameElement.textContent = groupName;
+                chatNameElement.style.fontSize = '14px';
+              }
+            }
+          });
+          
+          // Run cleanup again after updating to catch any remaining duplicates
+          setTimeout(() => {
+            cleanupDuplicateGroupNames();
+          }, 100);
+        } else {
+          alert('Error: ' + (data.error || 'Failed to update group name'));
+        }
+      } catch (error) {
+        console.error('Error updating group name:', error);
+        alert('Error updating group name: ' + error.message);
+      }
+    } else {
+      alert('Group name cannot be empty');
+    }
+    
+    // Save group icon
+    const iconInput = document.getElementById('groupIconInput');
+    let groupIcon = iconInput ? iconInput.value.trim() : '👥';
+    
+    // If empty or only whitespace, use default
+    if (!groupIcon) {
+      groupIcon = '👥';
+    }
+    
+    // Limit to first emoji/character only (handle emojis properly)
+    const chars = Array.from(groupIcon);
+    if (chars.length > 1) {
+      groupIcon = chars[0];
+    } else if (chars.length === 1) {
+      groupIcon = chars[0];
+    }
+    
+    // Ensure the emoji is properly encoded
+    // Convert to a string that can be safely JSON encoded
+    try {
+      // Test if it can be JSON stringified
+      JSON.stringify({ icon: groupIcon });
+    } catch (e) {
+      console.error('Emoji encoding error:', e);
+      alert('Invalid emoji. Please try a different one.');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/update-group-icon/${groupId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ icon: groupIcon })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('Error updating group icon:', data.error);
+        alert('Error updating group icon: ' + (data.error || 'Failed to update group icon'));
+      } else if (data.success) {
+        console.log('Group icon updated successfully:', data.icon);
+        iconUpdated = true;
+        const iconDisplay = document.getElementById('groupIconDisplay');
+        if (iconDisplay) {
+          // Clear any existing content completely
+          iconDisplay.innerHTML = '';
+          iconDisplay.textContent = '';
+          // Set only the emoji, ensure no text can appear
+          const emoji = data.icon || '👥';
+          iconDisplay.textContent = emoji;
+          // Ensure it's displayed as emoji, not text - force styles
+          iconDisplay.style.fontSize = '64px';
+          iconDisplay.style.lineHeight = '1';
+          iconDisplay.style.textAlign = 'center';
+          iconDisplay.style.display = 'flex';
+          iconDisplay.style.alignItems = 'center';
+          iconDisplay.style.justifyContent = 'center';
+          iconDisplay.style.overflow = 'hidden';
+          // Remove any classes that might interfere
+          iconDisplay.className = 'group-avatar-large';
+        }
+        // Update icon in header
+        const headerIcon = document.querySelector('.group-avatar-header');
+        if (headerIcon) {
+          headerIcon.innerHTML = '';
+          headerIcon.textContent = '';
+          const emoji = data.icon || '👥';
+          headerIcon.textContent = emoji;
+          headerIcon.style.fontSize = '32px';
+          headerIcon.style.lineHeight = '1';
+          headerIcon.style.display = 'flex';
+          headerIcon.style.alignItems = 'center';
+          headerIcon.style.justifyContent = 'center';
+          headerIcon.style.overflow = 'hidden';
+        }
+        // Update icon in chat list
+        const chatListItems = document.querySelectorAll('.chat-item[data-group-id]');
+        chatListItems.forEach(item => {
+          const itemGroupId = item.getAttribute('data-group-id');
+          if (itemGroupId && parseInt(itemGroupId) === groupId) {
+            const avatarElement = item.querySelector('.group-avatar');
+            if (avatarElement) {
+              avatarElement.innerHTML = '';
+              avatarElement.textContent = '';
+              const emoji = data.icon || '👥';
+              avatarElement.textContent = emoji;
+              avatarElement.style.fontSize = '32px';
+              avatarElement.style.lineHeight = '1';
+              avatarElement.style.display = 'flex';
+              avatarElement.style.alignItems = 'center';
+              avatarElement.style.justifyContent = 'center';
+              avatarElement.style.overflow = 'hidden';
+            }
+          }
+        });
+      } else {
+        console.error('Group icon update failed:', data.error);
+        alert('Error: ' + (data.error || 'Failed to update group icon'));
+      }
+    } catch (error) {
+      console.error('Error updating group icon:', error);
+      alert('Error updating group icon: ' + error.message);
+    }
+    
+    // Save group description
+    const descInput = document.getElementById('groupDescriptionInput');
+    const description = descInput ? descInput.value.trim() : '';
+    
+    try {
+      const response = await fetch(`/api/update-group-description/${groupId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ description: description })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('Error updating description:', data.error);
+        alert('Error updating description: ' + (data.error || 'Failed to update description'));
+      } else if (data.success) {
+        console.log('Description updated successfully');
+        descriptionUpdated = true;
+        const descText = document.getElementById('groupDescriptionText');
+        if (descText) {
+          if (description) {
+            descText.textContent = description;
+            descText.style.color = '#e0e0e0';
+            descText.style.fontStyle = 'normal';
+          } else {
+            descText.textContent = 'Click to add a description...';
+            descText.style.color = '#8b98a5';
+            descText.style.fontStyle = 'italic';
+          }
+        }
+      } else {
+        alert('Error: ' + (data.error || 'Failed to update description'));
+      }
+    } catch (error) {
+      console.error('Error updating description:', error);
+      alert('Error updating description: ' + error.message);
+    }
+    
+    // Switch back to view mode after all saves complete
+    toggleGroupEditMode();
+  }
+
+  // Cancel all group edits
+  function cancelAllGroupEdits() {
+    const nameInput = document.getElementById('groupNameInput');
+    const iconInput = document.getElementById('groupIconInput');
+    const descInput = document.getElementById('groupDescriptionInput');
+    
+    if (nameInput) {
+      const originalName = '{{ selected_group.name|escapejs }}';
+      nameInput.value = originalName;
+    }
+    
+    if (iconInput) {
+      const originalIcon = '{{ selected_group.icon|default:"👥"|escapejs }}';
+      iconInput.value = originalIcon;
+    }
+    
+    if (descInput) {
+      const originalDescription = '{{ selected_group.description|default:""|escapejs }}';
+      descInput.value = originalDescription;
+    }
+    
+    // Switch back to view mode
+    toggleGroupEditMode();
+  }
+
+  // Validate emoji input - check if character is not a regular letter/number
+  function isValidEmoji(str) {
+    if (!str || str.length === 0) return false;
+    
+    // Check if it's a regular ASCII letter or number - if so, it's NOT an emoji
+    const asciiLetterNumber = /^[a-zA-Z0-9\s]$/;
+    if (asciiLetterNumber.test(str)) {
+      return false;
+    }
+    
+    // Check if it contains any regular text characters
+    const regularText = /^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
+    if (regularText.test(str)) {
+      return false;
+    }
+    
+    // If it's not regular text, assume it's an emoji or special character (allow it)
+    return true;
+  }
+
+  // Set up event listeners (run immediately and on DOM ready)
+  function setupGroupEditListeners() {
+    // Ensure edit modes are hidden initially
+    const nameEdit = document.getElementById('groupNameEdit');
+    const nameDisplay = document.getElementById('groupNameDisplay');
+    const iconEdit = document.getElementById('groupIconEdit');
+    const iconDisplay = document.getElementById('groupIconDisplay');
+    const iconInput = document.getElementById('groupIconInput');
+    const descEdit = document.getElementById('groupDescriptionEdit');
+    const descDisplay = document.getElementById('groupDescriptionDisplay');
+    const editActions = document.getElementById('groupEditActions');
+    
+    if (nameEdit) {
+      nameEdit.style.display = 'none';
+    }
+    if (nameDisplay) {
+      nameDisplay.style.display = 'block';
+    }
+    if (iconEdit) {
+      iconEdit.style.display = 'none';
+    }
+    if (iconDisplay) {
+      iconDisplay.style.display = 'block';
+    }
+    if (descEdit) {
+      descEdit.style.display = 'none';
+    }
+    if (descDisplay) {
+      descDisplay.style.display = 'block';
+    }
+    if (editActions) {
+      editActions.style.display = 'none';
+    }
+    
+    // Add emoji validation to icon input - allow emojis, just limit to 1 emoji
+    if (iconInput) {
+      // Add input listener - allow emojis, just limit to one
+      iconInput.addEventListener('input', function(e) {
+        let value = e.target.value;
+        
+        // Use Array.from to properly handle emojis (which can be multiple code units)
+        // This correctly counts emojis as single characters
+        const chars = Array.from(value);
+        if (chars.length > 1) {
+          // Keep only the first character/emoji
+          e.target.value = chars[0];
+        }
+      }, { once: false });
+      
+      // Handle paste - allow emojis
+      iconInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        // Take only the first character/emoji
+        if (pastedText) {
+          const chars = Array.from(pastedText);
+          e.target.value = chars[0] || '';
+        }
+      }, { once: false });
+    }
+  }
+  
+  // Run on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupGroupEditListeners);
+  } else {
+    setupGroupEditListeners();
+  }
+
+  // Save group name
+  async function saveGroupName() {
+    const nameInput = document.getElementById('groupNameInput');
+    if (!nameInput) return;
+    
+    const groupName = nameInput.value.trim();
+    if (!groupName) {
+      alert('Group name cannot be empty');
+      return;
+    }
+    
+    const groupId = {{ selected_group.id }};
+    
+    try {
+      const csrfToken = getCookie('csrftoken');
+      const response = await fetch(`/api/update-group-name/${groupId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ name: groupName })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update group name');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        // Get the old group name before updating
+        const oldGroupName = document.getElementById('groupNameHeader')?.textContent || 
+                             document.getElementById('groupNameHeaderNonCreator')?.textContent || 
+                             document.getElementById('groupNameInHeader')?.textContent || '';
+        
+        // Hide edit mode first
+        const nameDisplay = document.getElementById('groupNameDisplay');
+        const nameEdit = document.getElementById('groupNameEdit');
+        if (nameDisplay && nameEdit) {
+          nameEdit.style.display = 'none';
+          nameDisplay.style.display = 'block';
+        }
+        
+        // Update group name in sidebar (only if element exists and is in the correct context)
+        const groupInfoContent = document.getElementById('groupInfoContent');
+        if (groupInfoContent) {
+          const nameHeader = groupInfoContent.querySelector('#groupNameHeader');
+          if (nameHeader) {
+            nameHeader.textContent = groupName;
+            nameHeader.style.fontSize = '1.2rem';
+          }
+          // Also update non-creator header if it exists
+          const nameHeaderNonCreator = groupInfoContent.querySelector('#groupNameHeaderNonCreator');
+          if (nameHeaderNonCreator) {
+            nameHeaderNonCreator.textContent = groupName;
+            nameHeaderNonCreator.style.fontSize = '1.2rem';
+          }
+        }
+        // Update group name in chat header
+        const chatHeader = document.querySelector('.chat-header');
+        if (chatHeader) {
+          const groupNameInHeader = chatHeader.querySelector('#groupNameInHeader');
+          if (groupNameInHeader) {
+            groupNameInHeader.textContent = groupName;
+          }
+        }
+        // Update group name in chat list (if visible)
+        const chatListItems = document.querySelectorAll('.chat-item[data-group-id]');
+        chatListItems.forEach(item => {
+          const itemGroupId = item.getAttribute('data-group-id');
+          if (itemGroupId && parseInt(itemGroupId) === groupId) {
+            const chatNameElement = item.querySelector('.chat-name');
+            if (chatNameElement) {
+              chatNameElement.textContent = groupName;
+              chatNameElement.style.fontSize = '14px';
+            }
+          }
+        });
+        
+        // Remove any stray text nodes or duplicate elements with old name
+        // First, find and remove any h3 elements that contain the old name but aren't the correct ones
+        const allH3Elements = document.querySelectorAll('h3');
+        allH3Elements.forEach(el => {
+          const text = el.textContent ? el.textContent.trim() : '';
+          const isOldName = oldGroupName && text.includes(oldGroupName.trim());
+          const isCorrectElement = el.id === 'groupNameHeader' || 
+                                  el.id === 'groupNameHeaderNonCreator' || 
+                                  el.id === 'groupNameInHeader';
+          
+          if (isOldName && !isCorrectElement) {
+            // Check if it has large font size (likely the problematic one)
+            const fontSize = window.getComputedStyle(el).fontSize;
+            const fontSizeNum = parseFloat(fontSize);
+            if (fontSizeNum > 20) {
+              el.remove(); // Remove instead of just hiding
+            }
+          }
+        });
+        
+        // Also check all elements for old name text
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(el => {
+          if (el.textContent && oldGroupName && el.textContent.trim().includes(oldGroupName.trim()) && 
+              el.id !== 'groupNameHeader' && el.id !== 'groupNameHeaderNonCreator' && 
+              el.id !== 'groupNameInHeader' && !el.classList.contains('chat-name') &&
+              el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE') {
+            const fontSize = window.getComputedStyle(el).fontSize;
+            const fontSizeNum = parseFloat(fontSize);
+            // If it's an h3 or has very large font size, remove it
+            if (el.tagName === 'H3' || fontSizeNum > 24) {
+              el.remove();
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error updating group name:', error);
+      alert('Failed to update group name: ' + error.message);
+    }
+  }
 </script>
 {% endblock body %}

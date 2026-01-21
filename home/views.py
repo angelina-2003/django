@@ -627,14 +627,20 @@ def poll_messages(request, chat_id):
     data = []
     for msg in messages:
         avatar = "default"
-        if hasattr(msg.sender, 'profile') and msg.sender.profile.avatar:
-            avatar = msg.sender.profile.avatar
+        message_color = "#4a3a6f"  # Default color
+        if hasattr(msg.sender, 'profile'):
+            if msg.sender.profile.avatar:
+                avatar = msg.sender.profile.avatar
+            if msg.sender.profile.message_color:
+                message_color = msg.sender.profile.message_color
         data.append({
             "id": msg.id,
             "text": msg.text,
             "sender": msg.sender.username,
+            "user_id": msg.sender.id,
             "is_me": msg.sender == request.user,
             "avatar": avatar,
+            "message_color": message_color,
             "created_at": msg.created_at.strftime("%H:%M"),
         })
 
@@ -807,4 +813,254 @@ def toggle_favorite(request):
             return JsonResponse({"error": str(e), "traceback": traceback.format_exc()}, status=400)
     
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+@login_required
+def get_user_profile(request, user_id):
+    """API endpoint to get user profile data"""
+    try:
+        user = get_object_or_404(User, id=user_id)
+        
+        # Get profile data
+        profile = user.profile
+        gift_counts = {
+            'love_letter': profile.love_letter_count,
+            'clove': profile.clove_count,
+            'golden_heart': profile.golden_heart_count,
+            'pearl': profile.pearl_count,
+        }
+        
+        return JsonResponse({
+            'username': user.username,
+            'display_name': profile.display_name,
+            'avatar': profile.avatar,
+            'age': profile.age,
+            'gender': profile.gender,
+            'hush_points': profile.hush_points,
+            'gift_counts': gift_counts,
+        })
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@login_required
+def update_group_description(request, group_id):
+    """API endpoint to update group description"""
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    
+    try:
+        group = get_object_or_404(Group, id=group_id)
+        
+        # Check if user is the creator
+        if group.creator != request.user:
+            return JsonResponse({"error": "Only the group creator can update the description"}, status=403)
+        
+        import json
+        data = json.loads(request.body)
+        description = data.get('description', '').strip()
+        
+        group.description = description
+        group.save()
+        
+        return JsonResponse({"success": True, "description": description})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@login_required
+def update_group_name(request, group_id):
+    """API endpoint to update group name"""
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    
+    try:
+        group = get_object_or_404(Group, id=group_id)
+        
+        # Check if user is the creator
+        if group.creator != request.user:
+            return JsonResponse({"error": "Only the group creator can update the group name"}, status=403)
+        
+        import json
+        data = json.loads(request.body)
+        name = data.get('name', '').strip()
+        
+        if not name:
+            return JsonResponse({"error": "Group name cannot be empty"}, status=400)
+        
+        if len(name) > 255:
+            return JsonResponse({"error": "Group name is too long (max 255 characters)"}, status=400)
+        
+        group.name = name
+        group.save()
+        
+        return JsonResponse({"success": True, "name": name})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@login_required
+def update_group_icon(request, group_id):
+    """API endpoint to update group icon (emoji)"""
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    
+    try:
+        group = get_object_or_404(Group, id=group_id)
+        
+        # Check if user is the creator
+        if group.creator != request.user:
+            return JsonResponse({"error": "Only the group creator can update the group icon"}, status=403)
+        
+        import json
+        import re
+        
+        # Decode request body properly to handle emojis
+        # Django's request.body is bytes, need to decode to string
+        try:
+            # Decode with UTF-8, handling surrogates properly
+            if isinstance(request.body, bytes):
+                body_str = request.body.decode('utf-8', errors='surrogatepass')
+            else:
+                body_str = str(request.body)
+        except (UnicodeDecodeError, AttributeError):
+            # Fallback: try with replace errors
+            try:
+                body_str = request.body.decode('utf-8', errors='replace')
+            except:
+                body_str = str(request.body)
+        
+        data = json.loads(body_str)
+        icon = data.get('icon', '👥')
+        
+        # Ensure icon is a string and strip whitespace
+        if isinstance(icon, str):
+            icon = icon.strip()
+        else:
+            icon = str(icon).strip()
+        
+        # If empty, use default
+        if not icon:
+            icon = '👥'
+        
+        # Limit to single emoji/character (handle emojis properly)
+        # Use list() to properly handle emojis which can be multiple code points
+        icon_chars = list(icon)
+        if len(icon_chars) > 1:
+            icon = icon_chars[0]
+        elif len(icon_chars) == 1:
+            icon = icon_chars[0]
+        
+        # Block regular ASCII letters and numbers
+        if icon and re.match(r'^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]+$', icon):
+            return JsonResponse({"error": "Icon must be an emoji, not regular text"}, status=400)
+        
+        # Ensure the icon is properly encoded before saving
+        # Convert any surrogate pairs to proper UTF-8
+        try:
+            # Encode and decode to normalize the emoji
+            icon_bytes = icon.encode('utf-8', errors='surrogatepass')
+            icon = icon_bytes.decode('utf-8', errors='replace')
+        except:
+            pass  # If encoding fails, use the icon as-is
+        
+        group.icon = icon or '👥'
+        group.save()
+        
+        # Ensure the response is properly encoded
+        response_data = {"success": True, "icon": group.icon}
+        response = JsonResponse(response_data, json_dumps_params={'ensure_ascii': False})
+        return response
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@login_required
+def update_message_color(request):
+    """API endpoint to update user's message color"""
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    
+    try:
+        import json
+        data = json.loads(request.body)
+        color = data.get('color', '').strip()
+        
+        # Validate hex color format
+        import re
+        if not re.match(r'^#[0-9A-Fa-f]{6}$', color):
+            return JsonResponse({"error": "Invalid color format. Must be a hex color (e.g., #4a3a6f)"}, status=400)
+        
+        profile = request.user.profile
+        profile.message_color = color
+        profile.save()
+        
+        return JsonResponse({"success": True, "color": color})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@login_required
+def delete_chat(request, chat_id):
+    """API endpoint to delete a private chat and all its messages"""
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    
+    try:
+        from home.models import PrivateChat, Message, Favorite
+        
+        chat = get_object_or_404(PrivateChat, id=chat_id)
+        
+        # Check if user is part of this chat
+        if request.user not in [chat.user1, chat.user2]:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+        
+        # Delete all messages in this chat
+        Message.objects.filter(chat=chat).delete()
+        
+        # Delete all favorites for this chat
+        Favorite.objects.filter(chat=chat).delete()
+        
+        # Delete the chat itself
+        chat.delete()
+        
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@login_required
+def delete_group_chat(request, group_id):
+    """API endpoint to leave/delete a group chat"""
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    
+    try:
+        from home.models import Group, GroupMember, Message, Favorite
+        
+        group = get_object_or_404(Group, id=group_id)
+        
+        # Check if user is a member
+        if not group.members.filter(id=request.user.id).exists() and group.creator != request.user:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+        
+        # If user is the creator, delete the entire group
+        if group.creator == request.user:
+            # Delete all messages
+            Message.objects.filter(group=group).delete()
+            # Delete all favorites
+            Favorite.objects.filter(group=group).delete()
+            # Delete all group members
+            GroupMember.objects.filter(group=group).delete()
+            # Delete the group
+            group.delete()
+        else:
+            # Just remove the user from the group
+            GroupMember.objects.filter(group=group, user=request.user).delete()
+            # Delete user's favorites for this group
+            Favorite.objects.filter(group=group, user=request.user).delete()
+        
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
